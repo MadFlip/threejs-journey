@@ -1,5 +1,6 @@
 import './style.css'
 import * as THREE from 'three'
+import gsap from 'gsap'
 
 // Scene
 const scene = new THREE.Scene()
@@ -63,19 +64,22 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.render(scene, camera)
 
-const clock = new THREE.Clock()
+gsap.to(cube1.position, { duration: 1, delay: .1, z: 1 })
+gsap.to(cube2.position, { duration: 1, delay: .2, z: 1 })
+gsap.to(cube3.position, { duration: 1, delay: .3, z: 1 })
+
+gsap.to(cube1.position, { duration: 1, delay: .6, z: 0 })
+gsap.to(cube2.position, { duration: 1, delay: .7, z: 0 })
+gsap.to(cube3.position, { duration: 1, delay: .8, z: 0 })
 
 const tick = () => {
     // Make objects rotate at the same speed regardless of the frame rate
-    const elapsedTime = clock.getElapsedTime()
+    // const elapsedTime = clock.getElapsedTime()
 
     // Update objects
     // group.rotation.y = Math.sin(elapsedTime)
     // cube.rotation.y = Math.sin(elapsedTime)
     // cube.rotation.x = Math.cos(elapsedTime)
-
-    camera.position.x = Math.sin(elapsedTime)
-    camera.position.y = Math.cos(elapsedTime)
     
     // Render
     renderer.render(scene, camera)
