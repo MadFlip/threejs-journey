@@ -6,7 +6,7 @@ const scene = new THREE.Scene()
 
 // Group
 const group = new THREE.Group()
-group.position.y = 1
+group.position.y = 1.2
 group.scale.y = 2
 group.rotation.y = 1
 scene.add(group)
@@ -35,7 +35,7 @@ const material = new THREE.MeshBasicMaterial({ color: 'MediumAquamarine' })
 const cube = new THREE.Mesh(geometry, material)
 
 // Position and scale
-cube.position.set(.7, -.6, 1)
+cube.position.set(.7, -0.3, 1)
 cube.scale.set(.5, .5, .5)
 
 // Rotation
@@ -62,3 +62,31 @@ const renderer = new THREE.WebGLRenderer({
 
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.render(scene, camera)
+
+let time = Date.now()
+
+const tick = () => {
+    // Make objects rotate at the same speed regardless of the frame rate
+    const currentTime = Date.now()
+    const deltaTime = currentTime - time
+    time = currentTime
+
+    // Update objects
+    group.rotation.y += 0.001 * deltaTime
+    cube.rotation.y += 0.001 * deltaTime
+    cube.rotation.x += 0.001 * deltaTime
+
+    // Render
+    renderer.render(scene, camera)
+
+    // Call tick again on the next frame
+    window.requestAnimationFrame(tick)
+}
+
+tick()
+
+window.addEventListener('resize', () => {
+    renderer.setSize(window.innerWidth, window.innerHeight)
+    camera.aspect = window.innerWidth / window.innerHeight
+    camera.updateProjectionMatrix()
+})
