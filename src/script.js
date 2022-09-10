@@ -70,10 +70,13 @@ const tick = () => {
     const elapsedTime = clock.getElapsedTime()
 
     // Update objects
-    group.rotation.y = Math.sin(elapsedTime)
-    cube.rotation.y = Math.sin(elapsedTime)
-    cube.rotation.x = Math.cos(elapsedTime)
+    // group.rotation.y = Math.sin(elapsedTime)
+    // cube.rotation.y = Math.sin(elapsedTime)
+    // cube.rotation.x = Math.cos(elapsedTime)
 
+    camera.position.x = Math.sin(elapsedTime)
+    camera.position.y = Math.cos(elapsedTime)
+    
     // Render
     renderer.render(scene, camera)
 
