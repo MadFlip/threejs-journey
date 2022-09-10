@@ -63,18 +63,16 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.render(scene, camera)
 
-let time = Date.now()
+const clock = new THREE.Clock()
 
 const tick = () => {
     // Make objects rotate at the same speed regardless of the frame rate
-    const currentTime = Date.now()
-    const deltaTime = currentTime - time
-    time = currentTime
+    const elapsedTime = clock.getElapsedTime()
 
     // Update objects
-    group.rotation.y += 0.001 * deltaTime
-    cube.rotation.y += 0.001 * deltaTime
-    cube.rotation.x += 0.001 * deltaTime
+    group.rotation.y = elapsedTime
+    cube.rotation.y = elapsedTime
+    cube.rotation.x = elapsedTime
 
     // Render
     renderer.render(scene, camera)
