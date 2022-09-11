@@ -1,5 +1,6 @@
 import './style.css'
 import * as THREE from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
 // Cursor
 const cursor = {
@@ -10,11 +11,10 @@ const cursor = {
 window.addEventListener('mousemove', (event) => {
     cursor.x = event.clientX / window.innerWidth - 0.5
     cursor.y = -(event.clientY / window.innerHeight - 0.5)
-
-    console.log(cursor.x, cursor.y)
 })
 
 // Scene
+const canvas = document.querySelector('.webgl')
 const scene = new THREE.Scene()
 
 // Group
@@ -48,8 +48,21 @@ const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerH
 camera.position.set(0, 0, 4)
 scene.add(camera)
 
+// Controls
+const controls = new OrbitControls(camera, canvas)
+controls.enableDamping = true
+controls.minDistance = 2 // max zoom in
+controls.maxDistance = 8 // max zoom out
+
+// limit rotation vertical
+controls.maxPolarAngle = Math.PI / 2 // max angle up
+controls.minPolarAngle = 30 / 180 * Math.PI
+
+// limit rotation horizontal
+controls.minAzimuthAngle = -Math.PI / 2
+controls.maxAzimuthAngle = Math.PI / 2
+
 // Renderer
-const canvas = document.querySelector('.webgl')
 const renderer = new THREE.WebGLRenderer({
     canvas // canvas: canvas
 })
@@ -61,12 +74,7 @@ renderer.render(scene, camera)
 
 const tick = () => {
     // const elapsedTime = clock.getElapsedTime()
-
-    camera.position.x = Math.sin(cursor.x * Math.PI * 2) * 3
-    camera.position.z = Math.cos(cursor.x * Math.PI * 2) * 3
-    camera.position.y = cursor.y * 5
-
-    camera.lookAt(group.position)
+    controls.update()
     renderer.render(scene, camera)
     window.requestAnimationFrame(tick)
 }
