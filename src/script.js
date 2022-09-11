@@ -17,55 +17,20 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 const canvas = document.querySelector('.webgl')
 const scene = new THREE.Scene()
 
-const positionsArray = new Float32Array([
-    0, 0, 0, // vertex 1
-    0, 1, 0, // vertex 2
-    1, 0, 0, // vertex 3
-])
-
-const positionsAttribute = new THREE.BufferAttribute(positionsArray, 3)
-
+// Objects
 const geometry = new THREE.BufferGeometry()
-geometry.setAttribute('position', positionsAttribute)
+const count = 50
+const positionsArray = new Float32Array(count * 3 * 3 )
+
+for (let i = 0; i < count * 3 * 3; i++) {
+    positionsArray[i] = (Math.random() - 0.5) * 4
+}
+
+geometry.setAttribute('position', new THREE.BufferAttribute(positionsArray, 3))
 
 const material = new THREE.MeshBasicMaterial({ color: 'cyan', wireframe: true })
 const mesh = new THREE.Mesh(geometry, material)
-mesh.position.y = 0.5
 scene.add(mesh)
-
-// Group
-const group = new THREE.Group()
-scene.add(group)
-
-const cube1 = new THREE.Mesh(
-    new THREE.BoxGeometry(.5, 1, .5, 3, 3, 3),
-    new THREE.MeshBasicMaterial({ 
-        color: 'tomato', 
-        wireframe: true
-    })
-)
-cube1.position.x = -.6
-
-const cube2 = new THREE.Mesh(
-    new THREE.BoxGeometry(.5, .8, .5),
-    new THREE.MeshBasicMaterial({ 
-        color: 'DeepSkyBlue',
-        wireframe: true 
-    })
-)
-cube2.position.y = -0.1
-
-const cube3 = new THREE.Mesh(
-    new THREE.BoxGeometry(.5, .6, .5),
-    new THREE.MeshBasicMaterial({ 
-        color: 'NavajoWhite',
-        wireframe: true 
-    })
-)
-cube3.position.x = .6
-cube3.position.y = -.2
-
-group.add(cube1, cube2, cube3)
 
 // Camera
 const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100)
