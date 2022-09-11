@@ -58,31 +58,41 @@ controls.maxDistance = 8 // max zoom out
 controls.maxPolarAngle = Math.PI / 2 // max angle up
 controls.minPolarAngle = 30 / 180 * Math.PI
 
-// limit rotation horizontal
-controls.minAzimuthAngle = -Math.PI / 2
-controls.maxAzimuthAngle = Math.PI / 2
-
 // Renderer
 const renderer = new THREE.WebGLRenderer({
     canvas // canvas: canvas
 })
 
 renderer.setSize(window.innerWidth, window.innerHeight)
-renderer.render(scene, camera)
-
-// const clock = new THREE.Clock()
 
 const tick = () => {
-    // const elapsedTime = clock.getElapsedTime()
     controls.update()
     renderer.render(scene, camera)
     window.requestAnimationFrame(tick)
 }
-
 tick()
 
 window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight)
+    // set pixel ratio to improve quality and performance
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
+})
+
+window.addEventListener('dblclick', () => {
+    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+    if (!fullscreenElement) {
+        if (canvas.requestFullscreen) {
+            canvas.requestFullscreen()
+        } else if (canvas.webkitRequestFullscreen) {
+            canvas.webkitRequestFullscreen()
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen()
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen()
+        }
+    }
 })
