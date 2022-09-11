@@ -19,26 +19,34 @@ const scene = new THREE.Scene()
 
 // Group
 const group = new THREE.Group()
-group.scale.set(.5, 1, .5)
 scene.add(group)
 
 const cube1 = new THREE.Mesh(
-    new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshBasicMaterial({ color: 'tomato' })
+    new THREE.BoxGeometry(.5, 1, .5, 3, 3, 3),
+    new THREE.MeshBasicMaterial({ 
+        color: 'tomato', 
+        wireframe: true
+    })
 )
-cube1.position.x = -1.2
+cube1.position.x = -.6
 
 const cube2 = new THREE.Mesh(
-    new THREE.BoxGeometry(1, 0.8, 1),
-    new THREE.MeshBasicMaterial({ color: 'DeepSkyBlue' })
+    new THREE.BoxGeometry(.5, .8, .5),
+    new THREE.MeshBasicMaterial({ 
+        color: 'DeepSkyBlue',
+        wireframe: true 
+    })
 )
-cube2.position.y = -.1
+cube2.position.y = -0.1
 
 const cube3 = new THREE.Mesh(
-    new THREE.BoxGeometry(1, 0.6, 1),
-    new THREE.MeshBasicMaterial({ color: 'NavajoWhite' })
+    new THREE.BoxGeometry(.5, .6, .5),
+    new THREE.MeshBasicMaterial({ 
+        color: 'NavajoWhite',
+        wireframe: true 
+    })
 )
-cube3.position.x = 1.2
+cube3.position.x = .6
 cube3.position.y = -.2
 
 group.add(cube1, cube2, cube3)
