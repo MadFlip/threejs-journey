@@ -109,6 +109,7 @@ materialSand.roughnessMap = sandRoughnessTexture
 materialSand.normalMap = sandNormalTexture
 materialSand.metalness = 0
 materialSand.roughness = 1
+materialSand.side = THREE.DoubleSide
 
 // const material = new THREE.MeshStandardMaterial()
 // material.side = THREE.DoubleSide
@@ -145,20 +146,21 @@ const sphere = new THREE.Mesh(
     new THREE.SphereGeometry(0.5, 64, 64),
     materialConcrete
 )
-sphere.position.x = -1
+sphere.position.x = -1.2
 sphere.geometry.setAttribute('uv2', new THREE.BufferAttribute(sphere.geometry.attributes.uv.array, 2))
 
 const plane = new THREE.Mesh(
     new THREE.PlaneGeometry(1, 1, 100, 100),
-    material
+    materialSand
 )
+plane.rotateX(- Math.PI * 0.5)
 plane.geometry.setAttribute('uv2', new THREE.BufferAttribute(plane.geometry.attributes.uv.array, 2))
 
 const torus = new THREE.Mesh(
     new THREE.TorusGeometry(0.3, 0.2, 64, 128),
     materialSand
 )
-torus.position.x = 1
+torus.position.x = 1.2
 torus.geometry.setAttribute('uv2', new THREE.BufferAttribute(torus.geometry.attributes.uv.array, 2))
 
 scene.add(sphere, plane, torus)
@@ -171,8 +173,8 @@ scene.add(camera)
 // Controls
 const controls = new OrbitControls(camera, canvas)
 controls.enableDamping = true
-controls.minDistance = 2 // max zoom in
-controls.maxDistance = 8 // max zoom out
+controls.minDistance = 1 // max zoom in
+controls.maxDistance = 10 // max zoom out
 
 // limit rotation vertical
 // controls.maxPolarAngle = Math.PI / 2 // max angle up
