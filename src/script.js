@@ -1,36 +1,77 @@
 import './style.css'
 import * as THREE from 'three'
+import gsap from 'gsap'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import * as dat from 'dat.gui'
 
-// Cursor
-// const cursor = {
-//     x: 0,
-//     y: 0
-// }
-
-// window.addEventListener('mousemove', (event) => {
-//     cursor.x = event.clientX / window.innerWidth - 0.5
-//     cursor.y = -(event.clientY / window.innerHeight - 0.5)
-// })
+// Debug
+const gui = new dat.GUI({ closed: true, width: 400 })
 
 // Scene
 const canvas = document.querySelector('.webgl')
 const scene = new THREE.Scene()
 
-// Objects
-const geometry = new THREE.BufferGeometry()
-const count = 50
-const positionsArray = new Float32Array(count * 3 * 3 )
+// Group
+const group = new THREE.Group()
+scene.add(group)
 
-for (let i = 0; i < count * 3 * 3; i++) {
-    positionsArray[i] = (Math.random() - 0.5) * 4
+const parameters = { 
+    color1: '#ff6347',
+    color2: '#00bfff',
+    color3: '#ffdead',
+    spin: () => {
+        gsap.to(group.rotation, { duration: 1, y: group.rotation.y + 10 })
+    }
 }
 
-geometry.setAttribute('position', new THREE.BufferAttribute(positionsArray, 3))
+const cube1 = new THREE.Mesh(
+    new THREE.BoxGeometry(.5, 1, .5),
+    new THREE.MeshBasicMaterial({ 
+        color: parameters.color1
+    })
+)
+cube1.position.x = -.6
 
-const material = new THREE.MeshBasicMaterial({ color: 'cyan', wireframe: true })
-const mesh = new THREE.Mesh(geometry, material)
-scene.add(mesh)
+const cube2 = new THREE.Mesh(
+    new THREE.BoxGeometry(.5, .8, .5),
+    new THREE.MeshBasicMaterial({ 
+        color: parameters.color2
+    })
+)
+cube2.position.y = -0.1
+
+const cube3 = new THREE.Mesh(
+    new THREE.BoxGeometry(.5, .6, .5),
+    new THREE.MeshBasicMaterial({ 
+        color: parameters.color3
+    })
+)
+cube3.position.x = .6
+cube3.position.y = -.2
+
+group.add(cube1, cube2, cube3)
+
+
+gui.add(group.position, 'x').min(-3).max(3).step(.01).name('positionX')
+gui.add(group.position, 'y').min(-3).max(3).step(.01).name('positionY')
+gui.add(cube1.material, 'wireframe').name('wireframe 1')
+gui.add(cube2.material, 'wireframe').name('wireframe 2')
+gui.add(cube3.material, 'wireframe').name('wireframe 3')
+
+gui.addColor(parameters, 'color1').onChange(() => {
+    cube1.material.color.set(parameters.color1)
+})
+
+gui.addColor(parameters, 'color2').onChange(() => {
+    cube2.material.color.set(parameters.color2)
+})
+
+gui.addColor(parameters, 'color3').onChange(() => {
+    cube3.material.color.set(parameters.color3)
+})
+gui.add(parameters, 'spin')
+
+
 
 // Camera
 const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100)
@@ -69,19 +110,19 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix()
 })
 
-window.addEventListener('dblclick', () => {
-    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
-    if (!fullscreenElement) {
-        if (canvas.requestFullscreen) {
-            canvas.requestFullscreen()
-        } else if (canvas.webkitRequestFullscreen) {
-            canvas.webkitRequestFullscreen()
-        }
-    } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen()
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen()
-        }
-    }
-})
+// window.addEventListener('dblclick', () => {
+//     const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+//     if (!fullscreenElement) {
+//         if (canvas.requestFullscreen) {
+//             canvas.requestFullscreen()
+//         } else if (canvas.webkitRequestFullscreen) {
+//             canvas.webkitRequestFullscreen()
+//         }
+//     } else {
+//         if (document.exitFullscreen) {
+//             document.exitFullscreen()
+//         } else if (document.webkitExitFullscreen) {
+//             document.webkitExitFullscreen()
+//         }
+//     }
+// })
