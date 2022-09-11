@@ -7,6 +7,8 @@ const parameters = {}
 
 // Textures
 const textureLoader = new THREE.TextureLoader()
+const cubeTextureLoader = new THREE.CubeTextureLoader()
+
 const doorColorTexture = textureLoader.load('textures/door/color.jpg')
 const doorAlphaTexture = textureLoader.load('textures/door/alpha.jpg')
 const doorAmbientOcclusionTexture = textureLoader.load('textures/door/ambientOcclusion.jpg')
@@ -17,12 +19,22 @@ const doorRoughnessTexture = textureLoader.load('textures/door/roughness.jpg')
 const matcapTexture = textureLoader.load('textures/matcaps/4.png')
 const gradientTexture = textureLoader.load('textures/gradients/5.jpg')
 
-doorColorTexture.generateMipmaps = false
-doorColorTexture.minFilter = THREE.NearestFilter
-doorColorTexture.magFilter = THREE.NearestFilter
-gradientTexture.minFilter = THREE.NearestFilter
-gradientTexture.magFilter = THREE.NearestFilter
-gradientTexture.generateMipmaps = false
+// doorColorTexture.generateMipmaps = false
+// doorColorTexture.minFilter = THREE.NearestFilter
+// doorColorTexture.magFilter = THREE.NearestFilter
+// gradientTexture.minFilter = THREE.NearestFilter
+// gradientTexture.magFilter = THREE.NearestFilter
+// gradientTexture.generateMipmaps = false
+
+const environmentMapTexture = cubeTextureLoader.load([
+    'textures/environmentMaps/0/px.jpg',
+    'textures/environmentMaps/0/nx.jpg',
+    'textures/environmentMaps/0/py.jpg',
+    'textures/environmentMaps/0/ny.jpg',
+    'textures/environmentMaps/0/pz.jpg',
+    'textures/environmentMaps/0/nz.jpg',
+])
+
 
 // Scene
 const canvas = document.querySelector('.webgl')
@@ -51,20 +63,27 @@ const scene = new THREE.Scene()
 // const material = new THREE.MeshToonMaterial()
 // material.gradientMap = gradientTexture
 
+// const material = new THREE.MeshStandardMaterial()
+// material.side = THREE.DoubleSide
+// material.metalness = 0
+// material.roughness = 1
+// material.map = doorColorTexture
+// material.aoMap = doorAmbientOcclusionTexture
+// material.aoMapIntensity = 1
+// material.displacementMap = doorHeightTexture
+// material.displacementScale = 0.025
+// material.metalnessMap = doorMetalnessTexture
+// material.roughnessMap = doorRoughnessTexture
+// material.normalMap = doorNormalTexture
+// material.transparent = true
+// material.alphaMap = doorAlphaTexture
+
+
 const material = new THREE.MeshStandardMaterial()
 material.side = THREE.DoubleSide
-material.metalness = 0
-material.roughness = 1
-material.map = doorColorTexture
-material.aoMap = doorAmbientOcclusionTexture
-material.aoMapIntensity = 1
-material.displacementMap = doorHeightTexture
-material.displacementScale = 0.025
-material.metalnessMap = doorMetalnessTexture
-material.roughnessMap = doorRoughnessTexture
-material.normalMap = doorNormalTexture
-material.transparent = true
-material.alphaMap = doorAlphaTexture
+material.metalness = 0.7
+material.roughness = .2
+material.envMap = environmentMapTexture
 
 // Debug
 const gui = new dat.GUI({ width: 400 })
