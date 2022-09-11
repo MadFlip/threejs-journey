@@ -7,20 +7,24 @@ import * as dat from 'dat.gui'
 // Textures
 const loadingManager = new THREE.LoadingManager()
 const textureLoader = new THREE.TextureLoader(loadingManager)
-const colorTexture = textureLoader.load('/door.jpg')
+// const colorTexture = textureLoader.load('textures/door/color.jpg')
+const colorTexture = textureLoader.load('textures/minecraft.png')
 
-colorTexture.repeat.x = 2
-colorTexture.repeat.y = 3
-colorTexture.wrapS = THREE.MirroredRepeatWrapping
-colorTexture.wrapT = THREE.RepeatWrapping
+// colorTexture.repeat.x = 2
+// colorTexture.repeat.y = 3
+// colorTexture.wrapS = THREE.MirroredRepeatWrapping
+// colorTexture.wrapT = THREE.RepeatWrapping
 
-colorTexture.offset.x = 0.5
-colorTexture.offset.y = 0.5
+// colorTexture.offset.x = 0.5
+// colorTexture.offset.y = 0.5
 
-colorTexture.rotation = Math.PI * 0.25
-colorTexture.center.x = 0.5
-colorTexture.center.y = 0.5
+// colorTexture.rotation = Math.PI * 0.25
+// colorTexture.center.x = 0.5
+// colorTexture.center.y = 0.5
 
+colorTexture.generateMipmaps = false
+colorTexture.minFilter = THREE.NearestFilter
+colorTexture.magFilter = THREE.NearestFilter
 
 // Debug
 const gui = new dat.GUI({ closed: true, width: 400 })
