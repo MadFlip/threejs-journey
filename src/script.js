@@ -4,6 +4,24 @@ import gsap from 'gsap'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'dat.gui'
 
+// Textures
+const loadingManager = new THREE.LoadingManager()
+const textureLoader = new THREE.TextureLoader(loadingManager)
+const colorTexture = textureLoader.load('/door.jpg')
+
+colorTexture.repeat.x = 2
+colorTexture.repeat.y = 3
+colorTexture.wrapS = THREE.MirroredRepeatWrapping
+colorTexture.wrapT = THREE.RepeatWrapping
+
+colorTexture.offset.x = 0.5
+colorTexture.offset.y = 0.5
+
+colorTexture.rotation = Math.PI * 0.25
+colorTexture.center.x = 0.5
+colorTexture.center.y = 0.5
+
+
 // Debug
 const gui = new dat.GUI({ closed: true, width: 400 })
 
@@ -16,7 +34,7 @@ const group = new THREE.Group()
 scene.add(group)
 
 const parameters = { 
-    color1: '#ff6347',
+    color1: '#ffffff', // #ff6347
     color2: '#00bfff',
     color3: '#ffdead',
     spin: () => {
@@ -24,34 +42,37 @@ const parameters = {
     }
 }
 
-const cube1 = new THREE.Mesh(
-    new THREE.BoxGeometry(.5, 1, .5),
-    new THREE.MeshBasicMaterial({ 
-        color: parameters.color1
-    })
-)
+// Geometry & Material
+const geometryCube1 = new THREE.BoxBufferGeometry(.5, 1, .5)
+const materialCube1 =  new THREE.MeshBasicMaterial({ 
+    color: parameters.color1,
+    map: colorTexture
+})
+
+const geometryCube2 = new THREE.BoxBufferGeometry(.5, .8, .5)
+const materialCube2 =  new THREE.MeshBasicMaterial({ 
+    color: parameters.color2
+})
+
+const geometryCube3 = new THREE.BoxBufferGeometry(.5, .6, .5)
+const materialCube3 =  new THREE.MeshBasicMaterial({ 
+    color: parameters.color3
+})
+
+// Mesh
+const cube1 = new THREE.Mesh(geometryCube1, materialCube1)
 cube1.position.x = -.6
 
-const cube2 = new THREE.Mesh(
-    new THREE.BoxGeometry(.5, .8, .5),
-    new THREE.MeshBasicMaterial({ 
-        color: parameters.color2
-    })
-)
+const cube2 = new THREE.Mesh(geometryCube2, materialCube2)
 cube2.position.y = -0.1
 
-const cube3 = new THREE.Mesh(
-    new THREE.BoxGeometry(.5, .6, .5),
-    new THREE.MeshBasicMaterial({ 
-        color: parameters.color3
-    })
-)
+const cube3 = new THREE.Mesh(geometryCube3, materialCube3)
 cube3.position.x = .6
 cube3.position.y = -.2
 
 group.add(cube1, cube2, cube3)
 
-
+// GUI Debug
 gui.add(group.position, 'x').min(-3).max(3).step(.01).name('positionX')
 gui.add(group.position, 'y').min(-3).max(3).step(.01).name('positionY')
 gui.add(cube1.material, 'wireframe').name('wireframe 1')
@@ -70,8 +91,6 @@ gui.addColor(parameters, 'color3').onChange(() => {
     cube3.material.color.set(parameters.color3)
 })
 gui.add(parameters, 'spin')
-
-
 
 // Camera
 const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100)
