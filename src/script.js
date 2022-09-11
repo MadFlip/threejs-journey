@@ -3,19 +3,35 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
 // Cursor
-const cursor = {
-    x: 0,
-    y: 0
-}
+// const cursor = {
+//     x: 0,
+//     y: 0
+// }
 
-window.addEventListener('mousemove', (event) => {
-    cursor.x = event.clientX / window.innerWidth - 0.5
-    cursor.y = -(event.clientY / window.innerHeight - 0.5)
-})
+// window.addEventListener('mousemove', (event) => {
+//     cursor.x = event.clientX / window.innerWidth - 0.5
+//     cursor.y = -(event.clientY / window.innerHeight - 0.5)
+// })
 
 // Scene
 const canvas = document.querySelector('.webgl')
 const scene = new THREE.Scene()
+
+const positionsArray = new Float32Array([
+    0, 0, 0, // vertex 1
+    0, 1, 0, // vertex 2
+    1, 0, 0, // vertex 3
+])
+
+const positionsAttribute = new THREE.BufferAttribute(positionsArray, 3)
+
+const geometry = new THREE.BufferGeometry()
+geometry.setAttribute('position', positionsAttribute)
+
+const material = new THREE.MeshBasicMaterial({ color: 'cyan', wireframe: true })
+const mesh = new THREE.Mesh(geometry, material)
+mesh.position.y = 0.5
+scene.add(mesh)
 
 // Group
 const group = new THREE.Group()
