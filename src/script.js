@@ -16,24 +16,34 @@ const doorHeightTexture = textureLoader.load('textures/door/height.jpg')
 const doorNormalTexture = textureLoader.load('textures/door/normal.jpg')
 const doorMetalnessTexture = textureLoader.load('textures/door/metalness.jpg')
 const doorRoughnessTexture = textureLoader.load('textures/door/roughness.jpg')
-const matcapTexture = textureLoader.load('textures/matcaps/4.png')
-const gradientTexture = textureLoader.load('textures/gradients/5.jpg')
 
-// doorColorTexture.generateMipmaps = false
-// doorColorTexture.minFilter = THREE.NearestFilter
-// doorColorTexture.magFilter = THREE.NearestFilter
+const concreteBlocksColorTexture = textureLoader.load('textures/concrete_blocks/color.jpg')
+const concreteBlocksAmbientOcclusionTexture = textureLoader.load('textures/concrete_blocks/ambientOcclusion.jpg')
+const concreteBlocksHeightTexture = textureLoader.load('textures/concrete_blocks/height.png')
+const concreteBlocksNormalTexture = textureLoader.load('textures/concrete_blocks/normal.jpg')
+const concreteBlocksRoughnessTexture = textureLoader.load('textures/concrete_blocks/roughness.jpg')
+
+const sandColorTexture = textureLoader.load('textures/sand/color.jpg')
+const sandAmbientOcclusionTexture = textureLoader.load('textures/sand/ambientOcclusion.jpg')
+const sandHeightTexture = textureLoader.load('textures/sand/height.png')
+const sandNormalTexture = textureLoader.load('textures/sand/normal.jpg')
+const sandRoughnessTexture = textureLoader.load('textures/sand/roughness.jpg')
+
+doorColorTexture.generateMipmaps = false
+doorColorTexture.minFilter = THREE.NearestFilter
+doorColorTexture.magFilter = THREE.NearestFilter
 // gradientTexture.minFilter = THREE.NearestFilter
 // gradientTexture.magFilter = THREE.NearestFilter
 // gradientTexture.generateMipmaps = false
 
-const environmentMapTexture = cubeTextureLoader.load([
-    'textures/environmentMaps/0/px.jpg',
-    'textures/environmentMaps/0/nx.jpg',
-    'textures/environmentMaps/0/py.jpg',
-    'textures/environmentMaps/0/ny.jpg',
-    'textures/environmentMaps/0/pz.jpg',
-    'textures/environmentMaps/0/nz.jpg',
-])
+// const environmentMapTexture = cubeTextureLoader.load([
+//     'textures/environmentMaps/3/px.jpg',
+//     'textures/environmentMaps/3/nx.jpg',
+//     'textures/environmentMaps/3/py.jpg',
+//     'textures/environmentMaps/3/ny.jpg',
+//     'textures/environmentMaps/3/pz.jpg',
+//     'textures/environmentMaps/3/nz.jpg',
+// ])
 
 
 // Scene
@@ -63,27 +73,48 @@ const scene = new THREE.Scene()
 // const material = new THREE.MeshToonMaterial()
 // material.gradientMap = gradientTexture
 
-// const material = new THREE.MeshStandardMaterial()
-// material.side = THREE.DoubleSide
-// material.metalness = 0
-// material.roughness = 1
-// material.map = doorColorTexture
-// material.aoMap = doorAmbientOcclusionTexture
-// material.aoMapIntensity = 1
-// material.displacementMap = doorHeightTexture
-// material.displacementScale = 0.025
-// material.metalnessMap = doorMetalnessTexture
-// material.roughnessMap = doorRoughnessTexture
-// material.normalMap = doorNormalTexture
-// material.transparent = true
-// material.alphaMap = doorAlphaTexture
-
-
 const material = new THREE.MeshStandardMaterial()
 material.side = THREE.DoubleSide
-material.metalness = 0.7
-material.roughness = .2
-material.envMap = environmentMapTexture
+material.metalness = 0
+material.roughness = 1
+material.map = doorColorTexture
+material.aoMap = doorAmbientOcclusionTexture
+material.aoMapIntensity = 1
+material.displacementMap = doorHeightTexture
+material.displacementScale = 0.025
+material.metalnessMap = doorMetalnessTexture
+material.roughnessMap = doorRoughnessTexture
+material.normalMap = doorNormalTexture
+material.transparent = true
+material.alphaMap = doorAlphaTexture
+
+const materialConcrete = new THREE.MeshStandardMaterial()
+materialConcrete.map = concreteBlocksColorTexture
+materialConcrete.aoMap = concreteBlocksAmbientOcclusionTexture
+material.aoMapIntensity = 0.96
+materialConcrete.displacementMap = concreteBlocksHeightTexture
+materialConcrete.displacementScale = 0.035
+materialConcrete.roughnessMap = concreteBlocksRoughnessTexture
+materialConcrete.normalMap = concreteBlocksNormalTexture
+materialConcrete.metalness = 0
+materialConcrete.roughness = 0.7
+
+const materialSand = new THREE.MeshStandardMaterial()
+materialSand.map = sandColorTexture
+materialSand.aoMap = sandAmbientOcclusionTexture
+materialSand.aoMapIntensity = 1
+materialSand.displacementMap = sandHeightTexture
+materialSand.displacementScale = 0.035
+materialSand.roughnessMap = sandRoughnessTexture
+materialSand.normalMap = sandNormalTexture
+materialSand.metalness = 0
+materialSand.roughness = 1
+
+// const material = new THREE.MeshStandardMaterial()
+// material.side = THREE.DoubleSide
+// material.metalness = 0.7
+// material.roughness = .2
+// material.envMap = environmentMapTexture
 
 // Debug
 const gui = new dat.GUI({ width: 400 })
@@ -91,6 +122,14 @@ gui.add(material, 'metalness').min(0).max(1).step(0.0001)
 gui.add(material, 'roughness').min(0).max(1).step(0.0001)
 gui.add(material, 'aoMapIntensity').min(0).max(10).step(0.0001)
 gui.add(material, 'displacementScale').min(0).max(1).step(0.0001)
+
+gui.add(materialConcrete, 'roughness').min(0).max(1).step(0.0001)
+gui.add(materialConcrete, 'aoMapIntensity').min(0).max(10).step(0.0001)
+gui.add(materialConcrete, 'displacementScale').min(0).max(1).step(0.0001)
+
+gui.add(materialSand, 'roughness').min(0).max(1).step(0.0001)
+gui.add(materialSand, 'aoMapIntensity').min(0).max(10).step(0.0001)
+gui.add(materialSand, 'displacementScale').min(0).max(1).step(0.0001)
 
 // Light
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
@@ -103,10 +142,10 @@ pointLight.position.z = 4
 scene.add(pointLight)
 
 const sphere = new THREE.Mesh(
-    new THREE.SphereGeometry(0.5, 64, 64,),
-    material
+    new THREE.SphereGeometry(0.5, 64, 64),
+    materialConcrete
 )
-sphere.position.x = -1.5
+sphere.position.x = -1
 sphere.geometry.setAttribute('uv2', new THREE.BufferAttribute(sphere.geometry.attributes.uv.array, 2))
 
 const plane = new THREE.Mesh(
@@ -117,9 +156,9 @@ plane.geometry.setAttribute('uv2', new THREE.BufferAttribute(plane.geometry.attr
 
 const torus = new THREE.Mesh(
     new THREE.TorusGeometry(0.3, 0.2, 64, 128),
-    material
+    materialSand
 )
-torus.position.x = 1.5
+torus.position.x = 1
 torus.geometry.setAttribute('uv2', new THREE.BufferAttribute(torus.geometry.attributes.uv.array, 2))
 
 scene.add(sphere, plane, torus)
@@ -150,13 +189,13 @@ const clock = new THREE.Clock()
 
 const tick = () => {
     const elapsedTime = clock.getElapsedTime()
-    // sphere.rotation.y = 0.1 * elapsedTime
-    // torus.rotation.y = 0.1 * elapsedTime
-    // plane.rotation.y = 0.1 * elapsedTime
+    sphere.rotation.y = 0.1 * elapsedTime
+    torus.rotation.y = 0.1 * elapsedTime
+    plane.rotation.y = 0.1 * elapsedTime
 
-    // sphere.rotation.x = 0.15 * elapsedTime
-    // torus.rotation.x = 0.15 * elapsedTime
-    // plane.rotation.x = 0.15 * elapsedTime
+    sphere.rotation.x = 0.15 * elapsedTime
+    torus.rotation.x = 0.15 * elapsedTime
+    plane.rotation.x = 0.15 * elapsedTime
 
     controls.update()
     renderer.render(scene, camera)
