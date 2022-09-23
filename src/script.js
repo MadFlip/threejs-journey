@@ -4,23 +4,13 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
-
-// Cursor
-const cursor = {
-    x: 0,
-    y: 0
-}
-
-window.addEventListener('mousemove', (event) => {
-    cursor.x = event.clientX / window.innerWidth - 0.5
-    cursor.y = -(event.clientY / window.innerHeight - 0.5)
-})
+import { RectAreaLightHelper } from 'three/examples/jsm/helpers/RectAreaLightHelper.js'
 
 /**
  * Base
  */
 // Debug
-// const gui = new dat.GUI()
+const gui = new dat.GUI()
 
 // Canvas
 const canvas = document.querySelector('.webgl')
@@ -29,28 +19,62 @@ const canvas = document.querySelector('.webgl')
 const scene = new THREE.Scene()
 scene.background = new THREE.Color(0x082caf)
 
-// get random number, but exclude values from -.5 to .5
-const getRandomNumber = (min, max) => {
-    const randomNumber = Math.random() * (max - min + 1) + min
-    if (randomNumber > -.5 && randomNumber < .5) {
-        return getRandomNumber(min, max)
-    } else {
-        return randomNumber
-    }
-}
-
 /**
  * Textures
  */
 const textureLoader = new THREE.TextureLoader()
-const matcapTexture = textureLoader.load('/textures/matcaps/flynt-1.png')
-const matcapTexture2 = textureLoader.load('/textures/matcaps/flynt-2.png')
-const matcapTexture3 = textureLoader.load('/textures/matcaps/flynt-3.png')
-
 
 /**
  * Fonts
  */
+ const material = new THREE.MeshStandardMaterial({
+    color: 0x1954ed,
+    roughness: 0.4,
+ })
+
+ const material2 = new THREE.MeshStandardMaterial({
+    color: 0x28d1b4,
+    roughness: 0.4,
+ })
+
+const material3 = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    roughness: 0.4,
+ })
+
+ const spehereGeometry = new THREE.SphereGeometry(0.25, 32, 32)
+ const pyramidGeometry = new THREE.ConeGeometry(0.5, 0.5, 3, 1, false, 0, Math.PI * 2)
+ const cubeGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5)
+ const planeGeometry = new THREE.PlaneGeometry(6, 6, 1, 1)
+ 
+ const spehere = new THREE.Mesh(spehereGeometry, material)
+ spehere.position.x = .5
+ spehere.position.y = .75
+ spehere.position.z = .1
+ spehere.rotation.x = Math.random() * Math.PI
+ spehere.rotation.y = Math.random() * Math.PI
+
+ const pyramid = new THREE.Mesh(pyramidGeometry, material2)
+ pyramid.position.x = 0.25
+ pyramid.position.y = -.5
+ pyramid.position.z = .75
+ pyramid.rotation.x = Math.random() * Math.PI
+ pyramid.rotation.y = Math.random() * Math.PI
+
+ const cube = new THREE.Mesh(cubeGeometry, material3)
+ cube.position.x = -.75
+ cube.position.y = .75
+ cube.position.z = -.5
+ cube.rotation.x = Math.random() * Math.PI
+ cube.rotation.y = Math.random() * Math.PI
+
+const plane = new THREE.Mesh(planeGeometry, material3)
+plane.position.x = 0
+plane.position.y = -1
+plane.position.z = 0
+plane.rotation.x = Math.PI * -.5
+ 
+ scene.add(cube, pyramid, spehere, plane)
 
 const fontLoader = new FontLoader()
 fontLoader.load(
@@ -70,82 +94,68 @@ fontLoader.load(
                 bevelSegments: 5,
             }
         )
-        textGeometry.center()
-        const material = new THREE.MeshMatcapMaterial({
-            matcap: matcapTexture
-         })
-        
+        textGeometry.center()     
         
         const text = new THREE.Mesh(textGeometry, material)
         scene.add(text)
-        
-
-        const material2 = new THREE.MeshMatcapMaterial({
-            matcap: matcapTexture2
-        })
-        
-        const material3 = new THREE.MeshMatcapMaterial({
-            matcap: matcapTexture3
-        })
-        // const donutGeometry = new THREE.TorusGeometry(0.3, 0.2, 20, 45)
-        const spehereGeometry = new THREE.SphereGeometry(0.5, 32, 32)
-        const pyramidGeometry = new THREE.ConeGeometry(0.5, 0.5, 3, 1, false, 0, Math.PI * 2)
-        const cubeGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5)
-        
-        for (let i = 0; i < 100; i++) {
-            const donut = new THREE.Mesh(spehereGeometry, material)
-            donut.position.x = getRandomNumber(-5,5)
-            donut.position.y = getRandomNumber(-5,5)
-            donut.position.z = getRandomNumber(-5,5)
-
-            donut.rotation.x = Math.random() * Math.PI
-            donut.rotation.y = Math.random() * Math.PI
-            
-            const scale = Math.random() * 0.35 + 0.35
-            // limit random scale to 0.5 - 1
-            
-            donut.scale.set(scale, scale, scale)
-            
-            scene.add(donut)
-        }
-
-        for (let i = 0; i < 100; i++) {
-            const donut = new THREE.Mesh(pyramidGeometry, material2)
-           
-      
-            donut.position.x = getRandomNumber(-5,5)
-            donut.position.y = getRandomNumber(-5,5)
-            donut.position.z = getRandomNumber(-5,5)
-
-            donut.rotation.x = Math.random() * Math.PI
-            donut.rotation.y = Math.random() * Math.PI
-            
-            const scale = Math.random() * 0.5 + 0.55
-            // limit random scale to 0.5 - 1
-            
-            donut.scale.set(scale, scale, scale)
-            
-            scene.add(donut)
-        }
-
-        for (let i = 0; i < 100; i++) {
-            const donut = new THREE.Mesh(cubeGeometry, material3)
-            donut.position.x = getRandomNumber(-5,5)
-            donut.position.y = getRandomNumber(-5,5)
-            donut.position.z = getRandomNumber(-5,5)
-
-            donut.rotation.x = Math.random() * Math.PI
-            donut.rotation.y = Math.random() * Math.PI
-            
-            const scale = Math.random() * 0.5 + 0.55
-            // limit random scale to 0.5 - 1
-            
-            donut.scale.set(scale, scale, scale)
-            
-            scene.add(donut)
-        }
     }
 )
+
+/**
+ * Lights
+ */
+
+// Minimal cost of using the GPU - Ambient light and Hemisphere light
+const ambientLight = new THREE.AmbientLight(0xffffff, .15)
+scene.add(ambientLight)
+
+const hemisphereLight = new THREE.HemisphereLight(0x082caf, 0x082caf, .75)
+scene.add(hemisphereLight)
+
+// Moderate cost of using the GPU - Directional light and Point light
+const directionalLight = new THREE.DirectionalLight(0xffffff, .2)
+directionalLight.position.set(1, 1, 1)
+scene.add(directionalLight)
+
+const pointLight = new THREE.PointLight(0xff9000, .85, 10, 2)
+pointLight.position.set(-.5, 0.4, 1)
+scene.add(pointLight)
+
+// High cost of using the GPU - Spot light and RectArea light !!
+const rectAreaLight = new THREE.RectAreaLight(0x00acff, 2, 1, 1)
+rectAreaLight.position.set(0, 1, 1)
+rectAreaLight.lookAt(new THREE.Vector3())
+scene.add(rectAreaLight)
+
+const spotLight = new THREE.SpotLight(0xff9000, .85, 10, Math.PI * .1, .25, 1)
+spotLight.position.set(0, 2, 3)
+spotLight.target.position.x = -0.5
+scene.add(spotLight.target)
+scene.add(spotLight)
+
+/**
+ * Light Helpers
+ */
+
+const hemisphereLightHelper = new THREE.HemisphereLightHelper(hemisphereLight, .2)
+scene.add(hemisphereLightHelper)
+
+const directionalLightHelper = new THREE.DirectionalLightHelper(directionalLight, .2)
+scene.add(directionalLightHelper)
+
+const pointLightHelper = new THREE.PointLightHelper(pointLight, .2)
+scene.add(pointLightHelper)
+
+const spotLightHelper = new THREE.SpotLightHelper(spotLight)
+scene.add(spotLightHelper)
+
+const rectAreaLightHelper = new RectAreaLightHelper(rectAreaLight)
+scene.add(rectAreaLightHelper)
+
+window.requestAnimationFrame(() => {
+    spotLightHelper.update()
+})
+
 
 
 /**
@@ -182,10 +192,8 @@ camera.position.z = 2
 scene.add(camera)
 
 // Controls
-// const controls = new OrbitControls(camera, canvas)
-// controls.enableDamping = true
-// controls.autoRotate = true
-// controls.enabled = false
+const controls = new OrbitControls(camera, canvas)
+controls.enableDamping = true
 
 /**
  * Renderer
@@ -195,6 +203,41 @@ const renderer = new THREE.WebGLRenderer({
 })
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+gui.add(ambientLight, 'intensity').min(0).max(1).step(0.001).name('Ambient Light')
+gui.add(hemisphereLight, 'intensity').min(0).max(1).step(0.001).name('Heimisphere Light')
+
+const directionalFolder = gui.addFolder('Directional Light')
+directionalFolder.add(directionalLight, 'intensity').min(0).max(1).step(0.001).name('Intensity')
+directionalFolder.add(directionalLight.position, 'x').min(-5).max(5).step(0.001).name('X')
+directionalFolder.add(directionalLight.position, 'y').min(-5).max(5).step(0.001).name('Y')
+directionalFolder.add(directionalLight.position, 'z').min(-5).max(5).step(0.001).name('Z')
+
+const pointFolder = gui.addFolder('Point Light')
+pointFolder.add(pointLight, 'intensity').min(0).max(1).step(0.001).name('Intensity')
+pointFolder.add(pointLight.position, 'x').min(-5).max(5).step(0.001).name('X')
+pointFolder.add(pointLight.position, 'y').min(-5).max(5).step(0.001).name('Y')
+pointFolder.add(pointLight.position, 'z').min(-5).max(5).step(0.001).name('Z')
+pointFolder.add(pointLight, 'distance').min(0).max(10).step(0.001).name('Distance')
+pointFolder.add(pointLight, 'decay').min(0).max(10).step(0.001).name('Decay')
+
+const rectAreaFolder = gui.addFolder('Rect Area Light')
+rectAreaFolder.add(rectAreaLight, 'intensity').min(0).max(10).step(0.001).name('Intensity')
+rectAreaFolder.add(rectAreaLight.position, 'x').min(-5).max(5).step(0.001).name('X')
+rectAreaFolder.add(rectAreaLight.position, 'y').min(-5).max(5).step(0.001).name('Y')
+rectAreaFolder.add(rectAreaLight.position, 'z').min(-5).max(5).step(0.001).name('Z')
+rectAreaFolder.add(rectAreaLight, 'width').min(0).max(10).step(0.001).name('Width')
+rectAreaFolder.add(rectAreaLight, 'height').min(0).max(10).step(0.001).name('Height')
+
+const spotFolder = gui.addFolder('Spot Light')
+spotFolder.add(spotLight, 'intensity').min(0).max(1).step(0.001).name('Intensity')
+spotFolder.add(spotLight.position, 'x').min(-5).max(5).step(0.001).name('X')
+spotFolder.add(spotLight.position, 'y').min(-5).max(5).step(0.001).name('Y')
+spotFolder.add(spotLight.position, 'z').min(-5).max(5).step(0.001).name('Z')
+spotFolder.add(spotLight, 'distance').min(0).max(20).step(0.001).name('Distance')
+spotFolder.add(spotLight, 'angle').min(0).max(Math.PI * 2).step(0.001).name('Angle')
+spotFolder.add(spotLight, 'penumbra').min(0).max(1).step(0.001).name('Penumbra')
+spotFolder.add(spotLight, 'decay').min(0).max(10).step(0.001).name('Decay')
 
 /**
  * Animate
@@ -206,11 +249,11 @@ const tick = () =>
     const elapsedTime = clock.getElapsedTime()
 
     // Update controls
-    // controls.update()
-    camera.position.x = Math.sin(cursor.x * Math.PI) * 3
-    camera.position.z = Math.cos(cursor.x * Math.PI) * 3
-    camera.position.y = cursor.y * 5
-    camera.lookAt(new THREE.Vector3())
+    controls.update()
+    // camera.position.x = Math.sin(cursor.x * Math.PI) * 3
+    // camera.position.z = Math.cos(cursor.x * Math.PI) * 3
+    // camera.position.y = cursor.y * 5
+    // camera.lookAt(new THREE.Vector3())
     // Render
     renderer.render(scene, camera)
 
