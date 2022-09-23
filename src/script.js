@@ -40,41 +40,45 @@ const textureLoader = new THREE.TextureLoader()
 const material3 = new THREE.MeshStandardMaterial({
     color: 0xffffff,
     roughness: 0.4,
- })
+})
 
- const spehereGeometry = new THREE.SphereGeometry(0.25, 32, 32)
- const pyramidGeometry = new THREE.ConeGeometry(0.5, 0.5, 3, 1, false, 0, Math.PI * 2)
- const cubeGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5)
- const planeGeometry = new THREE.PlaneGeometry(6, 6, 1, 1)
- 
- const spehere = new THREE.Mesh(spehereGeometry, material)
- spehere.position.x = .5
- spehere.position.y = .75
- spehere.position.z = .1
- spehere.rotation.x = Math.random() * Math.PI
- spehere.rotation.y = Math.random() * Math.PI
+const spehereGeometry = new THREE.SphereGeometry(0.25, 32, 32)
+const pyramidGeometry = new THREE.ConeGeometry(0.5, 0.5, 3, 1, false, 0, Math.PI * 2)
+const cubeGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5)
+const planeGeometry = new THREE.PlaneGeometry(6, 6, 1, 1)
 
- const pyramid = new THREE.Mesh(pyramidGeometry, material2)
- pyramid.position.x = 0.25
- pyramid.position.y = -.5
- pyramid.position.z = .75
- pyramid.rotation.x = Math.random() * Math.PI
- pyramid.rotation.y = Math.random() * Math.PI
+const spehere = new THREE.Mesh(spehereGeometry, material)
+spehere.position.x = .5
+spehere.position.y = .75
+spehere.position.z = .1
+spehere.rotation.x = Math.random() * Math.PI
+spehere.rotation.y = Math.random() * Math.PI
+spehere.castShadow = true
 
- const cube = new THREE.Mesh(cubeGeometry, material3)
- cube.position.x = -.75
- cube.position.y = .75
- cube.position.z = -.5
- cube.rotation.x = Math.random() * Math.PI
- cube.rotation.y = Math.random() * Math.PI
+const pyramid = new THREE.Mesh(pyramidGeometry, material2)
+pyramid.position.x = 0.25
+pyramid.position.y = -.5
+pyramid.position.z = .75
+pyramid.rotation.x = Math.random() * Math.PI
+pyramid.rotation.y = Math.random() * Math.PI
+pyramid.castShadow = true  
+
+const cube = new THREE.Mesh(cubeGeometry, material3)
+cube.position.x = -.75
+cube.position.y = .75
+cube.position.z = -.5
+cube.rotation.x = Math.random() * Math.PI
+cube.rotation.y = Math.random() * Math.PI
+cube.castShadow = true
 
 const plane = new THREE.Mesh(planeGeometry, material3)
 plane.position.x = 0
 plane.position.y = -1
 plane.position.z = 0
 plane.rotation.x = Math.PI * -.5
+plane.receiveShadow = true
  
- scene.add(cube, pyramid, spehere, plane)
+scene.add(cube, pyramid, spehere, plane)
 
 const fontLoader = new FontLoader()
 fontLoader.load(
@@ -97,6 +101,7 @@ fontLoader.load(
         textGeometry.center()     
         
         const text = new THREE.Mesh(textGeometry, material)
+        text.castShadow = true
         scene.add(text)
     }
 )
@@ -115,6 +120,16 @@ scene.add(hemisphereLight)
 // Moderate cost of using the GPU - Directional light and Point light
 const directionalLight = new THREE.DirectionalLight(0xffffff, .2)
 directionalLight.position.set(1, 1, 1)
+directionalLight.castShadow = true
+directionalLight.shadow.mapSize.width = 1024
+directionalLight.shadow.mapSize.height = 1024
+directionalLight.shadow.radius = 5
+directionalLight.shadow.camera.far = 6
+directionalLight.shadow.camera.near = 1
+directionalLight.shadow.camera.top = 2
+directionalLight.shadow.camera.right = 1
+directionalLight.shadow.camera.bottom = -1
+directionalLight.shadow.camera.left = -1
 scene.add(directionalLight)
 
 const pointLight = new THREE.PointLight(0xff9000, .85, 10, 2)
@@ -137,26 +152,28 @@ scene.add(spotLight)
  * Light Helpers
  */
 
-const hemisphereLightHelper = new THREE.HemisphereLightHelper(hemisphereLight, .2)
-scene.add(hemisphereLightHelper)
+// const hemisphereLightHelper = new THREE.HemisphereLightHelper(hemisphereLight, .2)
+// scene.add(hemisphereLightHelper)
 
-const directionalLightHelper = new THREE.DirectionalLightHelper(directionalLight, .2)
-scene.add(directionalLightHelper)
+// const directionalLightHelper = new THREE.DirectionalLightHelper(directionalLight, .2)
+// scene.add(directionalLightHelper)
 
-const pointLightHelper = new THREE.PointLightHelper(pointLight, .2)
-scene.add(pointLightHelper)
+// const pointLightHelper = new THREE.PointLightHelper(pointLight, .2)
+// scene.add(pointLightHelper)
 
-const spotLightHelper = new THREE.SpotLightHelper(spotLight)
-scene.add(spotLightHelper)
+// const spotLightHelper = new THREE.SpotLightHelper(spotLight)
+// scene.add(spotLightHelper)
 
-const rectAreaLightHelper = new RectAreaLightHelper(rectAreaLight)
-scene.add(rectAreaLightHelper)
+// const rectAreaLightHelper = new RectAreaLightHelper(rectAreaLight)
+// scene.add(rectAreaLightHelper)
 
-window.requestAnimationFrame(() => {
-    spotLightHelper.update()
-})
+// window.requestAnimationFrame(() => {
+//     spotLightHelper.update()
+// })
 
-
+const directionalLightCameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera)
+directionalLightCameraHelper.visible = false
+scene.add(directionalLightCameraHelper)
 
 /**
  * Sizes
@@ -199,10 +216,11 @@ controls.enableDamping = true
  * Renderer
  */
 const renderer = new THREE.WebGLRenderer({
-    canvas: canvas
+    canvas
 })
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+renderer.shadowMap.enabled = true
 
 gui.add(ambientLight, 'intensity').min(0).max(1).step(0.001).name('Ambient Light')
 gui.add(hemisphereLight, 'intensity').min(0).max(1).step(0.001).name('Heimisphere Light')
