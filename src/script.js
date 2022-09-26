@@ -11,7 +11,7 @@ import { RectAreaLightHelper } from 'three/examples/jsm/helpers/RectAreaLightHel
  */
 // Debug
 const gui = new dat.GUI()
-
+gui.close()
 
 // Canvas
 const canvas = document.querySelector('.webgl')
@@ -107,7 +107,7 @@ scene.add(cubeShadow)
 
 const fontLoader = new FontLoader()
 fontLoader.load(
-    '/fonts/helvetiker_regular.typeface.json',
+    '/fonts/titillium_web_semi_bold.json',
     (font) => {
         const textGeometry = new TextGeometry(
             'Bleech',
@@ -115,12 +115,12 @@ fontLoader.load(
                 font: font,
                 size: 0.5,
                 height: 0.2,
-                curveSegments: 6,
+                curveSegments: 16,
                 bevelEnabled: true,
                 bevelThickness: 0.03,
                 bevelSize: 0.02,
                 bevelOffset: 0,
-                bevelSegments: 5,
+                bevelSegments: 8,
             }
         )
         textGeometry.center()     
@@ -158,7 +158,7 @@ directionalLight.shadow.camera.bottom = -1
 directionalLight.shadow.camera.left = -3
 scene.add(directionalLight)
 
-const pointLight = new THREE.PointLight(0xff9000, .35, 10, 2)
+const pointLight = new THREE.PointLight(0xffffff, .35, 10, 2)
 pointLight.position.set(-.1, 0.5, -.5)
 pointLight.castShadow = false
 pointLight.shadow.mapSize.width = 1024
@@ -248,9 +248,9 @@ window.addEventListener('resize', () =>
  */
 // Base camera
 const camera = new THREE.PerspectiveCamera(60, sizes.width / sizes.height, 0.1, 100)
-camera.position.x = 1
-camera.position.y = 1
-camera.position.z = 2
+camera.position.x = 1.25
+camera.position.y = 1.25
+camera.position.z = 3
 scene.add(camera)
 
 // Controls
@@ -337,10 +337,7 @@ const tick = () =>
 
     // Update controls
     controls.update()
-    // camera.position.x = Math.sin(cursor.x * Math.PI) * 3
-    // camera.position.z = Math.cos(cursor.x * Math.PI) * 3
-    // camera.position.y = cursor.y * 5
-    // camera.lookAt(new THREE.Vector3())
+    
     // Render
     renderer.render(scene, camera)
 
