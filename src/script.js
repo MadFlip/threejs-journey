@@ -118,7 +118,7 @@ const hemisphereLight = new THREE.HemisphereLight(0x082caf, 0x082caf, .75)
 scene.add(hemisphereLight)
 
 // Moderate cost of using the GPU - Directional light and Point light
-const directionalLight = new THREE.DirectionalLight(0xffffff, .2)
+const directionalLight = new THREE.DirectionalLight(0xffffff, .4)
 directionalLight.position.set(1, 1, 1)
 directionalLight.castShadow = true
 directionalLight.shadow.mapSize.width = 1024
@@ -132,8 +132,14 @@ directionalLight.shadow.camera.bottom = -1
 directionalLight.shadow.camera.left = -1
 scene.add(directionalLight)
 
-const pointLight = new THREE.PointLight(0xff9000, .85, 10, 2)
-pointLight.position.set(-.5, 0.4, 1)
+const pointLight = new THREE.PointLight(0xff9000, .35, 10, 2)
+pointLight.position.set(-.1, 0.5, -.5)
+pointLight.castShadow = true
+pointLight.shadow.mapSize.width = 1024
+pointLight.shadow.mapSize.height = 1024
+pointLight.shadow.camera.near = 0.1
+pointLight.shadow.camera.far = 3
+
 scene.add(pointLight)
 
 // High cost of using the GPU - Spot light and RectArea light !!
@@ -142,8 +148,14 @@ rectAreaLight.position.set(0, 1, 1)
 rectAreaLight.lookAt(new THREE.Vector3())
 scene.add(rectAreaLight)
 
-const spotLight = new THREE.SpotLight(0xff9000, .85, 10, Math.PI * .1, .25, 1)
-spotLight.position.set(0, 2, 3)
+const spotLight = new THREE.SpotLight(0xff9000, .5, 10, Math.PI * .1, .05, 1)
+spotLight.position.set(0, 3, 3)
+spotLight.castShadow = true
+spotLight.shadow.mapSize.width = 1024
+spotLight.shadow.mapSize.height = 1024
+spotLight.shadow.fov = 30
+spotLight.shadow.camera.far = 6
+spotLight.shadow.camera.near = 1
 spotLight.target.position.x = -0.5
 scene.add(spotLight.target)
 scene.add(spotLight)
@@ -175,6 +187,13 @@ const directionalLightCameraHelper = new THREE.CameraHelper(directionalLight.sha
 directionalLightCameraHelper.visible = false
 scene.add(directionalLightCameraHelper)
 
+const spotLightCameraHelper = new THREE.CameraHelper(spotLight.shadow.camera)
+spotLightCameraHelper.visible = false
+scene.add(spotLightCameraHelper)
+
+const pointLightCameraHelper = new THREE.CameraHelper(pointLight.shadow.camera)
+pointLightCameraHelper.visible = false
+scene.add(pointLightCameraHelper)
 /**
  * Sizes
  */
