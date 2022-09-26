@@ -12,6 +12,7 @@ import { RectAreaLightHelper } from 'three/examples/jsm/helpers/RectAreaLightHel
 // Debug
 const gui = new dat.GUI()
 
+
 // Canvas
 const canvas = document.querySelector('.webgl')
 
@@ -23,6 +24,8 @@ scene.background = new THREE.Color(0x082caf)
  * Textures
  */
 const textureLoader = new THREE.TextureLoader()
+const simpleShadow = textureLoader.load('/textures/simpleShadow.jpg')
+const simpleShadowSq = textureLoader.load('/textures/simpleShadowSq.jpg')
 
 /**
  * Fonts
@@ -42,43 +45,65 @@ const material3 = new THREE.MeshStandardMaterial({
     roughness: 0.4,
 })
 
-const spehereGeometry = new THREE.SphereGeometry(0.25, 32, 32)
+const sphereGeometry = new THREE.SphereGeometry(0.25, 32, 32)
 const pyramidGeometry = new THREE.ConeGeometry(0.5, 0.5, 3, 1, false, 0, Math.PI * 2)
 const cubeGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5)
 const planeGeometry = new THREE.PlaneGeometry(6, 6, 1, 1)
 
-const spehere = new THREE.Mesh(spehereGeometry, material)
-spehere.position.x = .5
-spehere.position.y = .75
-spehere.position.z = .1
-spehere.rotation.x = Math.random() * Math.PI
-spehere.rotation.y = Math.random() * Math.PI
-spehere.castShadow = true
+const sphere = new THREE.Mesh(sphereGeometry, material)
+sphere.position.x = .5
+sphere.position.y = 0
+sphere.position.z = .1
+sphere.rotation.x = Math.random() * Math.PI
+sphere.rotation.y = Math.random() * Math.PI
+sphere.castShadow = false
 
 const pyramid = new THREE.Mesh(pyramidGeometry, material2)
-pyramid.position.x = 0.25
-pyramid.position.y = -.5
-pyramid.position.z = .75
-pyramid.rotation.x = Math.random() * Math.PI
-pyramid.rotation.y = Math.random() * Math.PI
+pyramid.position.x = 0
+pyramid.position.y = 1.55
+pyramid.position.z = 0
 pyramid.castShadow = true  
 
 const cube = new THREE.Mesh(cubeGeometry, material3)
 cube.position.x = -.75
 cube.position.y = .75
-cube.position.z = -.5
+cube.position.z = -.75
 cube.rotation.x = Math.random() * Math.PI
 cube.rotation.y = Math.random() * Math.PI
-cube.castShadow = true
+cube.castShadow = false
 
 const plane = new THREE.Mesh(planeGeometry, material3)
 plane.position.x = 0
-plane.position.y = -1
+plane.position.y = -.25
 plane.position.z = 0
 plane.rotation.x = Math.PI * -.5
 plane.receiveShadow = true
  
-scene.add(cube, pyramid, spehere, plane)
+scene.add(cube, pyramid, sphere, plane)
+
+const sphereShadow = new THREE.Mesh(
+    new THREE.PlaneGeometry(.25, .25),
+    new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        transparent: true,
+        alphaMap: simpleShadow
+    })
+)
+sphereShadow.rotation.x = - Math.PI * 0.5
+sphereShadow.position.y = plane.position.y + 0.01
+scene.add(sphereShadow)
+
+const cubeShadow = new THREE.Mesh(
+    new THREE.PlaneGeometry(.35, .35),
+    new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        transparent: true,
+        alphaMap: simpleShadowSq
+    })
+)
+cubeShadow.rotation.x = - Math.PI * 0.5
+cubeShadow.position.y = plane.position.y + 0.02
+scene.add(cubeShadow)
 
 const fontLoader = new FontLoader()
 fontLoader.load(
@@ -102,6 +127,7 @@ fontLoader.load(
         
         const text = new THREE.Mesh(textGeometry, material)
         text.castShadow = true
+        text.position.y = 1
         scene.add(text)
     }
 )
@@ -118,23 +144,23 @@ const hemisphereLight = new THREE.HemisphereLight(0x082caf, 0x082caf, .75)
 scene.add(hemisphereLight)
 
 // Moderate cost of using the GPU - Directional light and Point light
-const directionalLight = new THREE.DirectionalLight(0xffffff, .4)
-directionalLight.position.set(1, 1, 1)
+const directionalLight = new THREE.DirectionalLight(0xffffff, .3)
+directionalLight.position.set(1, 2, 1)
 directionalLight.castShadow = true
 directionalLight.shadow.mapSize.width = 1024
 directionalLight.shadow.mapSize.height = 1024
 directionalLight.shadow.radius = 5
 directionalLight.shadow.camera.far = 6
 directionalLight.shadow.camera.near = 1
-directionalLight.shadow.camera.top = 2
-directionalLight.shadow.camera.right = 1
+directionalLight.shadow.camera.top = 4
+directionalLight.shadow.camera.right = 3
 directionalLight.shadow.camera.bottom = -1
-directionalLight.shadow.camera.left = -1
+directionalLight.shadow.camera.left = -3
 scene.add(directionalLight)
 
 const pointLight = new THREE.PointLight(0xff9000, .35, 10, 2)
 pointLight.position.set(-.1, 0.5, -.5)
-pointLight.castShadow = true
+pointLight.castShadow = false
 pointLight.shadow.mapSize.width = 1024
 pointLight.shadow.mapSize.height = 1024
 pointLight.shadow.camera.near = 0.1
@@ -144,7 +170,7 @@ scene.add(pointLight)
 
 // High cost of using the GPU - Spot light and RectArea light !!
 const rectAreaLight = new THREE.RectAreaLight(0x00acff, 2, 1, 1)
-rectAreaLight.position.set(0, 1, 1)
+rectAreaLight.position.set(0, 1.75, 1)
 rectAreaLight.lookAt(new THREE.Vector3())
 scene.add(rectAreaLight)
 
@@ -284,6 +310,30 @@ const clock = new THREE.Clock()
 const tick = () =>
 {
     const elapsedTime = clock.getElapsedTime()
+    // Update sphere
+    sphere.position.x = Math.cos(elapsedTime) * 1.25
+    sphere.position.z = Math.sin(elapsedTime) * 1.25
+    // Force value to be positive Math.abs() 
+    sphere.position.y = Math.abs(Math.sin(elapsedTime * 3))
+
+    // Update shadow
+    sphereShadow.position.x = sphere.position.x
+    sphereShadow.position.z = sphere.position.z
+    sphereShadow.material.opacity = (1 - sphere.position.y) * 0.4 + 0.1
+    sphereShadow.scale.x = 2 + sphere.position.y * 2
+    sphereShadow.scale.y = 2 + sphere.position.y * 2
+
+    cube.position.x = Math.cos(elapsedTime) * 2.5
+    cube.position.z = Math.sin(elapsedTime) * 2.5
+    // Force value to be positive Math.abs() 
+    cube.position.y = Math.abs(Math.sin(elapsedTime * 3))
+
+    cubeShadow.position.x = cube.position.x
+    cubeShadow.position.z = cube.position.z
+    cubeShadow.material.opacity = (1 - cube.position.y) * 0.4 + 0.1
+    cubeShadow.scale.x = 2 + cube.position.y * 2
+    cubeShadow.scale.y = 2 + cube.position.y * 2
+    pyramid.rotation.y = elapsedTime
 
     // Update controls
     controls.update()
