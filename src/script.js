@@ -21,14 +21,25 @@ const scene = new THREE.Scene()
 const textureLoader = new THREE.TextureLoader()
 
 // Particles
-const particlesGeometry = new THREE.SphereGeometry(1, 32, 32)
+const particlesGeometry = new THREE.BufferGeometry()
+const particlesCount = 5000
+const posArray = new Float32Array(particlesCount * 3)
+
+for(let i = 0; i < particlesCount * 3; i++) {
+    posArray[i] = (Math.random() - 0.5) * 10
+}
+particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3))
+
+// Materials
 const particlesMaterial = new THREE.PointsMaterial({
-    size: .02,
+    size: 0.01,
     sizeAttenuation: true,
+    color: 'white'
 })
+
+// Points
 const particles = new THREE.Points(particlesGeometry, particlesMaterial)
 scene.add(particles)
-
 
 /**
  * Sizes
