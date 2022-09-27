@@ -23,7 +23,7 @@ const particleTexture = textureLoader.load('/textures/particles/1.png')
 
 // Particles
 const particlesGeometry = new THREE.BufferGeometry()
-const particlesCount = 5000
+const particlesCount = 1000
 const posArray = new Float32Array(particlesCount * 3)
 const colors = new Float32Array(particlesCount * 3)
 
@@ -109,8 +109,17 @@ const tick = () =>
     const elapsedTime = clock.getElapsedTime()
 
     // Update particles
-    particles.rotation.y = elapsedTime * 0.1
-    particles.rotation.x = elapsedTime * 0.1
+    // particles.rotation.y = elapsedTime * 0.1
+    // particles.rotation.x = elapsedTime * 0.1
+
+    for (let i = 0; i < particlesCount; i++) {
+        const i3 = i * 3
+
+        const x = particlesGeometry.attributes.position.array[i3]
+        particlesGeometry.attributes.position.array[i3 + 1] = Math.sin(elapsedTime + x)
+    }
+
+    particlesGeometry.attributes.position.needsUpdate = true
 
     // Update controls
     controls.update()
