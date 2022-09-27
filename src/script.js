@@ -19,22 +19,36 @@ const scene = new THREE.Scene()
  * Textures
  */
 const textureLoader = new THREE.TextureLoader()
+const particleTexture = textureLoader.load('/textures/particles/1.png')
 
 // Particles
 const particlesGeometry = new THREE.BufferGeometry()
 const particlesCount = 5000
 const posArray = new Float32Array(particlesCount * 3)
+const colors = new Float32Array(particlesCount * 3)
+
 
 for(let i = 0; i < particlesCount * 3; i++) {
     posArray[i] = (Math.random() - 0.5) * 10
+    colors[i] = Math.random()
 }
-particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3))
+particlesGeometry
+    .setAttribute('position', new THREE.BufferAttribute(posArray, 3))
+    .setAttribute('color', new THREE.BufferAttribute(colors, 3))
 
 // Materials
 const particlesMaterial = new THREE.PointsMaterial({
-    size: 0.01,
+    size: 0.1,
     sizeAttenuation: true,
-    color: 'white'
+    color: '#ffffff',
+    transparent: true,
+    map: particleTexture,
+    alphaMap: particleTexture,
+    // alphaTest: 0.001,
+    // blending: THREE.AdditiveBlending,
+    // depthTest: false,
+    depthWrite: false,
+    vertexColors: true
 })
 
 // Points
@@ -93,6 +107,10 @@ const clock = new THREE.Clock()
 const tick = () =>
 {
     const elapsedTime = clock.getElapsedTime()
+
+    // Update particles
+    particles.rotation.y = elapsedTime * 0.1
+    particles.rotation.x = elapsedTime * 0.1
 
     // Update controls
     controls.update()
