@@ -2,15 +2,12 @@ import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
-import { Color } from 'three'
 
 /**
  * Base
  */
 // Debug
-const gui = new dat.GUI({
-    width: 400
-})
+const gui = new dat.GUI()
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
@@ -18,88 +15,32 @@ const canvas = document.querySelector('canvas.webgl')
 // Scene
 const scene = new THREE.Scene()
 
-const parameters = {
-    count: 10000,
-    size: 0.01,
-    radius: 5,
-    branches: 3,
-    spin: 1,
-    randomness: 0.2,
-    randomnessPower: 3,
-    insideColor: '#ff6030',
-    outsideColor: '#1b3984'
-}
+/**
+ * Objects
+ */
+const object1 = new THREE.Mesh(
+    new THREE.SphereGeometry(0.5, 16, 16),
+    new THREE.MeshBasicMaterial({ color: '#ff0000' })
+)
+object1.position.x = - 2
 
-let geometry = null
-let material = null
-let points = null
+const object2 = new THREE.Mesh(
+    new THREE.SphereGeometry(0.5, 16, 16),
+    new THREE.MeshBasicMaterial({ color: '#ff0000' })
+)
 
+const object3 = new THREE.Mesh(
+    new THREE.SphereGeometry(0.5, 16, 16),
+    new THREE.MeshBasicMaterial({ color: '#ff0000' })
+)
+object3.position.x = 2
 
-// Galaxy
-const generateGalaxy = () => { 
-    // Destroy old galaxy
-    if (points !== null) {
-        geometry.dispose()
-        material.dispose()
-        scene.remove(points)
-    }
+scene.add(object1, object2, object3)
 
-    geometry = new THREE.BufferGeometry()
-    const positions = new Float32Array(parameters.count * 3)
-    const colors = new Float32Array(parameters.count * 3)
-    const colorInside = new THREE.Color(parameters.insideColor)
-    const colorOutside = new THREE.Color(parameters.outsideColor)
-    
-    for (let i = 0; i < parameters.count; i++) {
-        const i3 = i * 3
-
-        const radius = Math.random() * parameters.radius
-        const branchAngle = (i % parameters.branches) / parameters.branches * Math.PI * 2
-        const spinAngle = radius * parameters.spin
-        
-        const randomX = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : -1)
-        const randomY = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : -1)
-        const randomZ = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : -1)
-
-        positions[i3] = Math.cos(branchAngle + spinAngle) * radius + randomX
-        positions[i3 + 1] = Math.tan(branchAngle + spinAngle) * radius + randomY
-        positions[i3 + 2] = Math.tan(branchAngle + spinAngle) * radius + randomZ
-
-        const mixedColor = colorInside.clone()
-        mixedColor.lerp(colorOutside, radius / parameters.radius)
-
-        colors[i3] = mixedColor.r
-        colors[i3 + 1] = mixedColor.g
-        colors[i3 + 2] = mixedColor.b
-    }
-
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
-
-    material = new THREE.PointsMaterial({
-        size: parameters.size,
-        sizeAttenuation: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-        vertexColors: true
-    })
-
-    points = new THREE.Points(geometry, material)
-    scene.add(points)
-}
-
-generateGalaxy()
+// Raycaster
+const raycaster = new THREE.Raycaster()
 
 
-gui.add(parameters, 'count').min(100).max(100000).step(100).onFinishChange(generateGalaxy)
-gui.add(parameters, 'size').min(0.001).max(0.1).step(0.001).onFinishChange(generateGalaxy)
-gui.add(parameters, 'radius').min(0.01).max(20).step(0.01).onFinishChange(generateGalaxy)
-gui.add(parameters, 'branches').min(2).max(20).step(1).onFinishChange(generateGalaxy)
-gui.add(parameters, 'spin').min(-5).max(5).step(0.001).onFinishChange(generateGalaxy)
-gui.add(parameters, 'randomness').min(0).max(2).step(0.001).onFinishChange(generateGalaxy)
-gui.add(parameters, 'randomnessPower').min(1).max(10).step(0.001).onFinishChange(generateGalaxy)
-gui.addColor(parameters, 'insideColor').onFinishChange(generateGalaxy)
-gui.addColor(parameters, 'outsideColor').onFinishChange(generateGalaxy)
 /**
  * Sizes
  */
@@ -128,8 +69,6 @@ window.addEventListener('resize', () =>
  */
 // Base camera
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.x = 3
-camera.position.y = 3
 camera.position.z = 3
 scene.add(camera)
 
@@ -154,6 +93,27 @@ const clock = new THREE.Clock()
 const tick = () =>
 {
     const elapsedTime = clock.getElapsedTime()
+
+    // Update objects
+    object1.position.y = Math.sin(elapsedTime * 0.3) * 1.5
+    object2.position.y = Math.sin(elapsedTime * 0.8) * 1.5
+    object3.position.y = Math.sin(elapsedTime * 1.4) * 1.5
+
+    // Cast a ray
+    const rayOrigin = new THREE.Vector3(-3, 0, 0)
+    const rayDirection = new THREE.Vector3(10, 0, 0)
+    rayDirection.normalize()
+    raycaster.set(rayOrigin, rayDirection)
+    const objectsToTest = [object1, object2, object3]
+    const intersects = raycaster.intersectObjects(objectsToTest)
+    
+    for (const object of objectsToTest) {
+        object.material.color.set('#ff0000')
+    }
+
+    for (const intersect of intersects) {
+        intersect.object.material.color.set('#0000ff')
+    }
 
     // Update controls
     controls.update()
