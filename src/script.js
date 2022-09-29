@@ -62,8 +62,8 @@ const generateGalaxy = () => {
         const randomZ = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : -1)
 
         positions[i3] = Math.cos(branchAngle + spinAngle) * radius + randomX
-        positions[i3 + 1] = randomY
-        positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + randomZ
+        positions[i3 + 1] = Math.tan(branchAngle + spinAngle) * radius + randomY
+        positions[i3 + 2] = Math.tan(branchAngle + spinAngle) * radius + randomZ
 
         const mixedColor = colorInside.clone()
         mixedColor.lerp(colorOutside, radius / parameters.radius)
