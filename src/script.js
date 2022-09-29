@@ -1,14 +1,32 @@
 import './style.css'
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
+
+/**
+ * Debug
+ */
+const gui = new dat.GUI()
+
+const parameters = {
+    materialColor: 0xFFC261
+}
+
+gui.addColor(parameters, 'materialColor').onChange(() => {
+    material.color.set(parameters.materialColor)
+})
+
+const textureLoader = new THREE.TextureLoader()
+const gradientTexture = textureLoader.load('/textures/gradients/3.jpg')
+gradientTexture.magFilter = THREE.NearestFilter
+
+const material = new THREE.MeshToonMaterial({
+    color: parameters.materialColor,
+    gradientMap: gradientTexture
+})
 
 /**
  * Base
  */
-// Debug
-const gui = new dat.GUI()
-
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
 
@@ -16,26 +34,36 @@ const canvas = document.querySelector('canvas.webgl')
 const scene = new THREE.Scene()
 
 /**
- * Objects
+ * Meshes
  */
-const object1 = new THREE.Mesh(
-    new THREE.SphereGeometry(0.5, 16, 16),
-    new THREE.MeshBasicMaterial({ color: '#ff0000' })
+const objectsDistance = 4
+const mesh1 = new THREE.Mesh(
+    new THREE.TorusGeometry(1, 0.3, 16, 80),
+    material
 )
-object1.position.x = - 2
+mesh1.position.x = 2
 
-const object2 = new THREE.Mesh(
-    new THREE.SphereGeometry(0.5, 16, 16),
-    new THREE.MeshBasicMaterial({ color: '#ff0000' })
+const mesh2 = new THREE.Mesh(
+    new THREE.ConeGeometry(1, 2, 32),
+    material
 )
+mesh2.position.y = -objectsDistance
+mesh2.position.x = -2
 
-const object3 = new THREE.Mesh(
-    new THREE.SphereGeometry(0.5, 16, 16),
-    new THREE.MeshBasicMaterial({ color: '#ff0000' })
+const mesh3 = new THREE.Mesh(
+    new THREE.TorusKnotGeometry(1, 0.3, 100, 16),
+    material
 )
-object3.position.x = 2
+mesh3.position.y = -objectsDistance * 2
+mesh3.position.x = 2
 
-scene.add(object1, object2, object3)
+scene.add(mesh1, mesh2, mesh3)
+const sectionMeshes = [mesh1, mesh2, mesh3]
+
+// Lights
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1)
+directionalLight.position.set(1, 1, 0)
+scene.add(directionalLight)
 
 /**
  * Sizes
@@ -44,30 +72,6 @@ const sizes = {
     width: window.innerWidth,
     height: window.innerHeight
 }
-
-const mouse = new THREE.Vector2()
-const raycaster = new THREE.Raycaster()
-
-window.addEventListener('mousemove', (event) => {
-    mouse.x = (event.clientX / sizes.width) * 2 - 1
-    mouse.y = -(event.clientY / sizes.height) * 2 + 1
-})
-
-window.addEventListener('click', () => {
-    if (currentIntersect) {
-        switch (currentIntersect.object) {
-            case object1:
-                console.log('click on object 1')
-                break
-            case object2:
-                console.log('click on object 2')
-                break
-            case object3:
-                console.log('click on object 3')
-                break
-        }
-    }
-})
 
 window.addEventListener('resize', () =>
 {
@@ -88,66 +92,69 @@ window.addEventListener('resize', () =>
  * Camera
  */
 // Base camera
-const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.z = 3
-scene.add(camera)
 
-// Controls
-const controls = new OrbitControls(camera, canvas)
-controls.enableDamping = true
+const camera = new THREE.PerspectiveCamera(35, sizes.width / sizes.height, 0.1, 100)
+const cameraGroup = new THREE.Group()
+cameraGroup.position.z = 6
+cameraGroup.add(camera)
+scene.add(cameraGroup)
+
+
 
 /**
  * Renderer
  */
 const renderer = new THREE.WebGLRenderer({
-    canvas: canvas
+    canvas,
+    alpha: true,
+    antialias: true
 })
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+let scrollY = window.scrollY
+
+window.addEventListener('scroll', () => {
+    scrollY = window.scrollY
+})
+
+// Cursor
+const cursor = {
+    x: 0,
+    y: 0
+}
+
+window.addEventListener('mousemove', (event) => {
+    cursor.x = event.clientX / sizes.width - 0.5
+    cursor.y = -(event.clientY / sizes.height - 0.5)
+})
 
 /**
  * Animate
  */
 const clock = new THREE.Clock()
-
-let currentIntersect = null
+let previousTime = 0
 
 const tick = () =>
 {
     const elapsedTime = clock.getElapsedTime()
-
-    // Update objects
-    object1.position.y = Math.sin(elapsedTime * 0.3) * 1.5
-    object2.position.y = Math.sin(elapsedTime * 0.8) * 1.5
-    object3.position.y = Math.sin(elapsedTime * 1.4) * 1.5
-
-    // Cast a ray
-    raycaster.setFromCamera(mouse, camera)
-    const objectsToTest = [object1, object2, object3]
-    const intersects = raycaster.intersectObjects(objectsToTest)
+    const deltaTime = elapsedTime - previousTime
+    previousTime = elapsedTime
     
-    for (const object of objectsToTest) {
-        object.material.color.set('#ff0000')
-    }
+    // Animate meshes
+    sectionMeshes.forEach((mesh, index) => {
+        mesh.rotation.x = elapsedTime * 0.1
+        mesh.rotation.y = elapsedTime * 0.12
+    })
 
-    for (const intersect of intersects) {
-        intersect.object.material.color.set('#0000ff')
-    }
+    // Animating camera
+    cameraGroup.position.y = -scrollY / sizes.height * objectsDistance
 
-    if (intersects.length) {
-        if (currentIntersect === null) {
-            console.log('mouseenter')
-        }
-        currentIntersect = intersects[0]
-    } else {
-        if (currentIntersect) {
-            console.log('mouseleave')
-        }
-        currentIntersect = null
-    }
+    const parallaxX = cursor.x * 0.5
+    const parallaxY = cursor.y * 0.5
 
-    // Update controls
-    controls.update()
+    camera.position.x += (parallaxX - camera.position.x) * 5 * deltaTime
+    camera.position.y += (parallaxY - camera.position.y) * 5 * deltaTime
 
     // Render
     renderer.render(scene, camera)
