@@ -37,10 +37,6 @@ object3.position.x = 2
 
 scene.add(object1, object2, object3)
 
-// Raycaster
-const raycaster = new THREE.Raycaster()
-
-
 /**
  * Sizes
  */
@@ -48,6 +44,14 @@ const sizes = {
     width: window.innerWidth,
     height: window.innerHeight
 }
+
+const mouse = new THREE.Vector2()
+const raycaster = new THREE.Raycaster()
+
+window.addEventListener('mousemove', (event) => {
+    mouse.x = (event.clientX / sizes.width) * 2 - 1
+    mouse.y = -(event.clientY / sizes.height) * 2 + 1
+})
 
 window.addEventListener('resize', () =>
 {
@@ -100,10 +104,7 @@ const tick = () =>
     object3.position.y = Math.sin(elapsedTime * 1.4) * 1.5
 
     // Cast a ray
-    const rayOrigin = new THREE.Vector3(-3, 0, 0)
-    const rayDirection = new THREE.Vector3(10, 0, 0)
-    rayDirection.normalize()
-    raycaster.set(rayOrigin, rayDirection)
+    raycaster.setFromCamera(mouse, camera)
     const objectsToTest = [object1, object2, object3]
     const intersects = raycaster.intersectObjects(objectsToTest)
     
