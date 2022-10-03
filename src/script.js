@@ -61,6 +61,18 @@ const world = new CANNON.World()
 // -9,82 m/s² - Earth gravity
 world.gravity.set(0, -9.82, 0)
 
+/**
+ * Performance
+ */
+
+// Broadphase SAP (Sweep and Prune) is a good default choice for most cases and is fast.
+// Improves performance by not checking every object against every other object.
+world.broadphase = new CANNON.SAPBroadphase(world)
+
+// When the Body speed gets incredibly slow (at a point where you can't see it moving), 
+// the Body can fall asleep and won't be tested unless a sufficient force is applied to it by code or if another Body hits it.
+world.allowSleep = true
+
 // Physics material
 const defaultMaterial = new CANNON.Material('default')
 const defaultContactMaterial = new CANNON.ContactMaterial(
