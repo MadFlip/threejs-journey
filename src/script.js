@@ -71,19 +71,21 @@ floorBody.addShape(floorShape)
 floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI * 0.5)
 world.addBody(floorBody)
 
+const sphereGeometry = new THREE.SphereGeometry(1, 20, 20)
+const sphereMaterial = new THREE.MeshStandardMaterial({
+    metalness: 0.3,
+    roughness: 0.4,
+    envMap: environmentMapTexture,
+    envMapIntensity: 0.5
+})
+
 // Utils
 const objectsToUpdate = []
+
 const createSphere = (radius, position) => {
-    const mesh = new THREE.Mesh(
-        new THREE.SphereBufferGeometry(radius, 32, 32),
-        new THREE.MeshStandardMaterial({
-            metalness: 0.3,
-            roughness: 0.4,
-            envMap: environmentMapTexture,
-            envMapIntensity: 0.5
-        })
-        )
+    const mesh = new THREE.Mesh(sphereGeometry, sphereMaterial)
         mesh.castShadow = true
+        mesh.scale.set(radius, radius, radius)
         mesh.position.copy(position)
         scene.add(mesh)
         
