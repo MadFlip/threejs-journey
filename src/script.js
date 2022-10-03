@@ -56,6 +56,22 @@ const environmentMapTexture = cubeTextureLoader.load([
     '/textures/environmentMaps/0/nz.png'
 ])
 
+// Sounds
+const hitSound = new Audio('/sounds/hit.mp3')
+
+const playHitSound = (collision) => {
+    const impactStrength = collision.contact.getImpactVelocityAlongNormal()
+
+    if(impactStrength > 1.5)
+    {
+        hitSound.volume = impactStrength / 10 * Math.random()
+        hitSound.currentTime = 0
+        hitSound.play()
+    }
+}
+
+
+
 // Physics
 const world = new CANNON.World()
 // -9,82 m/s² - Earth gravity
@@ -141,6 +157,7 @@ const createSphere = (radius, position) => {
     // |
     // V
     objectsToUpdate.push({mesh, body})
+    body.addEventListener('collide', playHitSound)
 }
 
 const createBox = (width, height, depth, position) => {
@@ -163,6 +180,7 @@ const createBox = (width, height, depth, position) => {
 
     // Save in object
     objectsToUpdate.push({mesh, body})
+    body.addEventListener('collide', playHitSound)
 }
     
     /**
