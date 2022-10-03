@@ -18,6 +18,19 @@ debugObject.createSphere = () => {
 }
 gui.add(debugObject, 'createSphere')
 
+debugObject.createBox = () => {
+    createBox(
+        Math.random(),
+        Math.random(),
+        Math.random(),
+        {
+            x: (Math.random() - 0.5) * 3,
+            y: 3,
+            z: (Math.random() - 0.5) * 3
+        }
+    )
+}
+gui.add(debugObject, 'createBox')
 
 /**
  * Base
@@ -79,36 +92,66 @@ const sphereMaterial = new THREE.MeshStandardMaterial({
     envMapIntensity: 0.5
 })
 
+const boxGeometry = new THREE.BoxGeometry(1, 1, 1)
+const boxMaterial = new THREE.MeshStandardMaterial({
+    metalness: 0.3,
+    roughness: 0.4,
+    envMap: environmentMapTexture,
+    envMapIntensity: 0.5
+})
+
 // Utils
 const objectsToUpdate = []
 
 const createSphere = (radius, position) => {
     const mesh = new THREE.Mesh(sphereGeometry, sphereMaterial)
-        mesh.castShadow = true
-        mesh.scale.set(radius, radius, radius)
-        mesh.position.copy(position)
-        scene.add(mesh)
-        
-        // Physics
-        const shape = new CANNON.Sphere(radius)
-        const body = new CANNON.Body({
-            mass: 1,
-            position: new CANNON.Vec3(0, 3, 0),
-            shape: shape,
-            material: defaultMaterial
-        })
-        body.position.copy(position)
-        world.addBody(body)
+    mesh.castShadow = true
+    mesh.scale.set(radius, radius, radius)
+    mesh.position.copy(position)
+    scene.add(mesh)
+    
+    // Physics
+    const shape = new CANNON.Sphere(radius)
+    const body = new CANNON.Body({
+        mass: 1,
+        position: new CANNON.Vec3(0, 3, 0),
+        shape: shape,
+        material: defaultMaterial
+    })
+    body.position.copy(position)
+    world.addBody(body)
 
-        // objectsToUpdate.push({
-        //     mesh: mesh,
-        //     body: body
-        // })
-        // |
-        // |
-        // V
-        objectsToUpdate.push({mesh, body})
-    }
+    // objectsToUpdate.push({
+    //     mesh: mesh,
+    //     body: body
+    // })
+    // |
+    // |
+    // V
+    objectsToUpdate.push({mesh, body})
+}
+
+const createBox = (width, height, depth, position) => {
+    const mesh = new THREE.Mesh(boxGeometry, boxMaterial)
+    mesh.scale.set(width, height, depth)
+    mesh.castShadow = true
+    mesh.position.copy(position)
+    scene.add(mesh)
+
+    // Cannon.js body
+    const shape = new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2))
+    const body = new CANNON.Body({
+        mass: 1,
+        position: new CANNON.Vec3(0, 3, 0),
+        shape: shape,
+        material: defaultMaterial
+    })
+    body.position.copy(position)
+    world.addBody(body)
+
+    // Save in object
+    objectsToUpdate.push({mesh, body})
+}
     
     /**
      * Floor
@@ -127,7 +170,8 @@ floor.receiveShadow = true
 floor.rotation.x = - Math.PI * 0.5
 scene.add(floor)
 
-createSphere(0.5, { x: 0, y: 3, z: 0 })
+// createSphere(0.5, { x: 0, y: 3, z: 0 })
+createBox(1, 1.5, 2, {x: 0, y: 3, z: 0})
 /**
  * Lights
  */
@@ -208,7 +252,7 @@ const tick = () =>
 
     for(const object of objectsToUpdate) {
         object.mesh.position.copy(object.body.position)
-        // object.mesh.quaternion.copy(object.body.quaternion)
+        object.mesh.quaternion.copy(object.body.quaternion)
     }
 
     // Update controls
