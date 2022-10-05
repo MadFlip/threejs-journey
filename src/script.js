@@ -2,11 +2,11 @@ import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
-import CANNON, { Material, Vec3 } from 'cannon'
-
+import * as CANNON from 'cannon-es'
 /**
  * Debug
  */
+
 const gui = new dat.GUI()
 const debugObject = {}
 debugObject.createSphere = () => {
@@ -19,10 +19,11 @@ debugObject.createSphere = () => {
 gui.add(debugObject, 'createSphere')
 
 debugObject.createBox = () => {
+    const randomSize = Math.random()
     createBox(
-        Math.random(),
-        Math.random(),
-        Math.random(),
+       randomSize,
+       randomSize,
+       randomSize,
         {
             x: (Math.random() - 0.5) * 3,
             y: 3,
@@ -31,6 +32,19 @@ debugObject.createBox = () => {
     )
 }
 gui.add(debugObject, 'createBox')
+
+debugObject.createPyramid = () => {
+    const randomSize = Math.random()
+    createPyramid(
+        randomSize * 0.5,
+        {
+            x: (Math.random() - 0.5) * 3,
+            y: 3,
+            z: (Math.random() - 0.5) * 3
+        }
+    )
+}
+gui.add(debugObject, 'createPyramid')
 
 debugObject.reset = () => {
     for(const object of objectsToUpdate) {
@@ -54,6 +68,10 @@ const canvas = document.querySelector('canvas.webgl')
 
 // Scene
 const scene = new THREE.Scene()
+
+// enable fog
+scene.fog = new THREE.Fog('#e8f2ff', 0.5, 12)
+
 
 /**
  * Textures
@@ -89,6 +107,7 @@ const playHitSound = (collision) => {
 // Physics
 const world = new CANNON.World()
 // -9,82 m/s² - Earth gravity
+// -1,62 m/s² - Moon gravity
 world.gravity.set(0, -9.82, 0)
 
 /**
@@ -127,19 +146,23 @@ floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI * 0.5)
 world.addBody(floorBody)
 
 const sphereGeometry = new THREE.SphereGeometry(1, 20, 20)
-const sphereMaterial = new THREE.MeshStandardMaterial({
-    metalness: 0.3,
-    roughness: 0.4,
-    envMap: environmentMapTexture,
-    envMapIntensity: 0.5
+const sphereMaterial = new THREE.MeshLambertMaterial({
+    color: new THREE.Color("silver"),
+    emissive: new THREE.Color('#2C374E')
 })
 
 const boxGeometry = new THREE.BoxGeometry(1, 1, 1)
-const boxMaterial = new THREE.MeshStandardMaterial({
-    metalness: 0.3,
-    roughness: 0.4,
-    envMap: environmentMapTexture,
-    envMapIntensity: 0.5
+const boxMaterial = new THREE.MeshLambertMaterial({
+    color: new THREE.Color("silver"),
+    emissive: new THREE.Color('#2C374E')
+})
+
+const pyramidSegments = 4
+// don't put top radius to 0, it will break collision detection
+const pyramidGeometry = new THREE.CylinderGeometry(0.01, 1, 1, pyramidSegments)
+const pyramidMaterial = new THREE.MeshLambertMaterial({
+    color: new THREE.Color("silver"),
+    emissive: new THREE.Color('#2C374E')
 })
 
 // Utils
@@ -196,18 +219,39 @@ const createBox = (width, height, depth, position) => {
     objectsToUpdate.push({mesh, body})
     body.addEventListener('collide', playHitSound)
 }
+
+const createPyramid = (radius, position) => {
+    const mesh = new THREE.Mesh(pyramidGeometry, pyramidMaterial)
+    // mesh.rotateX(Math.PI / 2)
+    mesh.castShadow = true
+    mesh.scale.set(radius, radius, radius)
+    mesh.position.copy(position)
+    scene.add(mesh)
+
+    // Cannon.js body
+    const shape = new CANNON.Cylinder(0.01, radius, radius, pyramidSegments)
+    const body = new CANNON.Body({
+        mass: 1,
+        position: new CANNON.Vec3(0, 3, 0),
+        shape: shape,
+        material: defaultMaterial
+    })
+    body.position.copy(position)
+    world.addBody(body)
+
+    // Save in object
+    objectsToUpdate.push({mesh, body})
+    body.addEventListener('collide', playHitSound)
+}
     
     /**
      * Floor
      */
 const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(10, 10),
-    new THREE.MeshStandardMaterial({
-        color: '#777777',
-        metalness: 0.3,
-        roughness: 0.4,
-        envMap: environmentMapTexture,
-        envMapIntensity: 0.5
+    new THREE.MeshLambertMaterial({
+        color: new THREE.Color("silver"),
+        emissive: new THREE.Color('#4B5568')
     })
 )
 floor.receiveShadow = true
@@ -215,7 +259,8 @@ floor.rotation.x = - Math.PI * 0.5
 scene.add(floor)
 
 // createSphere(0.5, { x: 0, y: 3, z: 0 })
-createBox(1, 1.5, 2, {x: 0, y: 3, z: 0})
+// createBox(1, 1, 1, {x: 0, y: 3, z: 0})
+createPyramid(1, {x: 2, y: 3, z: 0})
 /**
  * Lights
  */
@@ -237,15 +282,15 @@ scene.add(directionalLight)
  * Sizes
  */
 const sizes = {
-    width: window.innerWidth,
-    height: window.innerHeight
+    width: window.innerWidth - 40,
+    height: window.innerHeight - 40
 }
 
 window.addEventListener('resize', () =>
 {
     // Update sizes
-    sizes.width = window.innerWidth
-    sizes.height = window.innerHeight
+    sizes.width = window.innerWidth - 40    
+    sizes.height = window.innerHeight - 40
 
     // Update camera
     camera.aspect = sizes.width / sizes.height
@@ -262,17 +307,30 @@ window.addEventListener('resize', () =>
 // Base camera
 const camera = new THREE.PerspectiveCamera(55, sizes.width / sizes.height, 0.1, 100)
 camera.position.set(- 3, 3, 3)
+camera.lookAt(new THREE.Vector3(0, 0, 0))
 scene.add(camera)
 
 // Controls
 const controls = new OrbitControls(camera, canvas)
 controls.enableDamping = true
+//disable zoom
+controls.enableZoom = false
+//disable pan
+controls.enablePan = false
+// limits the camera to not go below the floor
+// controls.minPolarAngle = Math.PI / 2
+controls.maxPolarAngle = Math.PI / 2 - 0.2
+
+controls.autoRotate = true
+controls.autoRotateSpeed = 5
 
 /**
  * Renderer
  */
 const renderer = new THREE.WebGLRenderer({
-    canvas: canvas
+    canvas: canvas,
+    alpha: true,
+    antialias: true
 })
 renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
