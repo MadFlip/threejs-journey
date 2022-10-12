@@ -16,8 +16,8 @@ const canvas = document.querySelector('canvas.webgl')
 
 // Scene
 const scene = new THREE.Scene()
-scene.background = new THREE.Color(0x265714)
-scene.fog = new THREE.Fog(0x265714, 0.5, 10)
+scene.background = new THREE.Color(0x747467)
+// scene.fog = new THREE.Fog(0x265714, 0.5, 10)
 
 /** 
  * Models
@@ -31,51 +31,53 @@ const gltfLoader = new GLTFLoader()
 gltfLoader.setDRACOLoader(dracoLoader)
 
 gltfLoader.load(
-    '/models/Fox/glTF/Fox.gltf',
+    '/models/Car/car.gltf',
     (gltf) =>
     {
-        mixer = new THREE.AnimationMixer(gltf.scene)
-        let idleAction = mixer.clipAction(gltf.animations[0])
-        let walkAction = mixer.clipAction(gltf.animations[1])
-        let runAction = mixer.clipAction(gltf.animations[2])
-        actions = [idleAction, walkAction, runAction]
+        console.log(gltf)
+        // mixer = new THREE.AnimationMixer(gltf.scene)
+        // let idleAction = mixer.clipAction(gltf.animations[0])
+        // let walkAction = mixer.clipAction(gltf.animations[1])
+        // let runAction = mixer.clipAction(gltf.animations[2])
+        // actions = [idleAction, walkAction, runAction]
 
-        // play or crossFade idleAction on "w" keypress
-        document.addEventListener('keydown', (e) => {
-            console.log(mixer.stats.actions)
-            switch (e.key) {
-                case 'w' :
-                    idleAction.fadeOut(.5)
-                    runAction.fadeOut(.5)
-                    setTimeout(() => {
-                        idleAction.stop()
-                        runAction.stop()
-                        walkAction.fadeIn(.5)
-                        walkAction.play()
-                    }, 500)
-                    break
-                case 's' :
-                    walkAction.fadeOut(.5)
-                    runAction.fadeOut(.5)
-                    setTimeout(() => {
-                        walkAction.stop()
-                        runAction.stop()
-                        idleAction.fadeIn(.5)
-                        idleAction.play()
-                    }, 500)
-                    break
-                case 'e' :
-                    walkAction.crossFadeTo(runAction, .5)
-                    idleAction.fadeOut(.5)
-                    setTimeout(() => {
-                        walkAction.stop()
-                        idleAction.stop()
-                    }, 500)
-                    runAction.play()
-            }
-        })
+        // // play or crossFade idleAction on "w" keypress
+        // document.addEventListener('keydown', (e) => {
+        //     console.log(mixer.stats.actions)
+        //     switch (e.key) {
+        //         case 'w' :
+        //             idleAction.fadeOut(.5)
+        //             runAction.fadeOut(.5)
+        //             setTimeout(() => {
+        //                 idleAction.stop()
+        //                 runAction.stop()
+        //                 walkAction.fadeIn(.5)
+        //                 walkAction.play()
+        //             }, 500)
+        //             break
+        //         case 's' :
+        //             walkAction.fadeOut(.5)
+        //             runAction.fadeOut(.5)
+        //             setTimeout(() => {
+        //                 walkAction.stop()
+        //                 runAction.stop()
+        //                 idleAction.fadeIn(.5)
+        //                 idleAction.play()
+        //             }, 500)
+        //             break
+        //         case 'e' :
+        //             walkAction.crossFadeTo(runAction, .5)
+        //             idleAction.fadeOut(.5)
+        //             setTimeout(() => {
+        //                 walkAction.stop()
+        //                 idleAction.stop()
+        //             }, 500)
+        //             runAction.play()
+        //     }
+        // })
 
-        gltf.scene.scale.set(0.025, 0.025, 0.025)
+        // gltf.scene.scale.set(0.025, 0.025, 0.025)
+        gltf.scene.position.set(0, .25, 0)
         gltf.scene.castShadow = true
         scene.add(gltf.scene)
     }
@@ -88,7 +90,7 @@ gltfLoader.load(
 const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(30, 30),
     new THREE.MeshStandardMaterial({
-        color: '#265714',
+        color: '#747467',
         metalness: .2,
         roughness: .6
     })
