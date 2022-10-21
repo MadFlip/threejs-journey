@@ -2,118 +2,69 @@ import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 
 /**
  * Base
  */
 // Debug
 const gui = new dat.GUI()
+gui.hide()
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
 
 // Scene
 const scene = new THREE.Scene()
-scene.background = new THREE.Color(0x747467)
-// scene.fog = new THREE.Fog(0x265714, 0.5, 10)
+scene.background = new THREE.Color(0x000000)
+// add a fog so the text behind is not visible
+scene.fog = new THREE.Fog(0x000000, 0.0001, 6)
 
-/** 
- * Models
- */
-let mixer = null
-let actions = []
-const dracoLoader = new DRACOLoader()
-dracoLoader.setDecoderPath('/draco/')
 
-const gltfLoader = new GLTFLoader()
-gltfLoader.setDRACOLoader(dracoLoader)
-
-gltfLoader.load(
-    '/models/Car/car.gltf',
-    (gltf) =>
-    {
-        console.log(gltf)
-        // mixer = new THREE.AnimationMixer(gltf.scene)
-        // let idleAction = mixer.clipAction(gltf.animations[0])
-        // let walkAction = mixer.clipAction(gltf.animations[1])
-        // let runAction = mixer.clipAction(gltf.animations[2])
-        // actions = [idleAction, walkAction, runAction]
-
-        // // play or crossFade idleAction on "w" keypress
-        // document.addEventListener('keydown', (e) => {
-        //     console.log(mixer.stats.actions)
-        //     switch (e.key) {
-        //         case 'w' :
-        //             idleAction.fadeOut(.5)
-        //             runAction.fadeOut(.5)
-        //             setTimeout(() => {
-        //                 idleAction.stop()
-        //                 runAction.stop()
-        //                 walkAction.fadeIn(.5)
-        //                 walkAction.play()
-        //             }, 500)
-        //             break
-        //         case 's' :
-        //             walkAction.fadeOut(.5)
-        //             runAction.fadeOut(.5)
-        //             setTimeout(() => {
-        //                 walkAction.stop()
-        //                 runAction.stop()
-        //                 idleAction.fadeIn(.5)
-        //                 idleAction.play()
-        //             }, 500)
-        //             break
-        //         case 'e' :
-        //             walkAction.crossFadeTo(runAction, .5)
-        //             idleAction.fadeOut(.5)
-        //             setTimeout(() => {
-        //                 walkAction.stop()
-        //                 idleAction.stop()
-        //             }, 500)
-        //             runAction.play()
-        //     }
-        // })
-
-        // gltf.scene.scale.set(0.025, 0.025, 0.025)
-        gltf.scene.position.set(0, .25, 0)
-        gltf.scene.castShadow = true
-        scene.add(gltf.scene)
+// Text geometry
+const textMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff })
+const fontLoader = new FontLoader()
+const textOptions = (font) => {
+    return {
+        font: font,
+        size: .45,
+        height: 0.02,
+        curveSegments: 16,
+        bevelEnabled: false,
     }
-)
+}
+const textMeshesGroup =  new THREE.Group()
 
+fontLoader.load(
+    '/fonts/titillium_web_semi_bold.json',
+    (font) => {
+        const textGeometry = new TextGeometry('BLACK FRIDAY', textOptions(font))
+        textGeometry.center()
 
-/**
- * Floor
- */
-const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(30, 30),
-    new THREE.MeshStandardMaterial({
-        color: '#747467',
-        metalness: .2,
-        roughness: .6
+        // generate 8 text meshes and position them making a cylinder shape
+        const textMeshCount = 8
+        const textCircleRadius = 0.7
+        for (let i = 0; i < textMeshCount; i++) {
+            const textMesh = new THREE.Mesh(textGeometry, textMaterial)
+            textMesh.position.y = Math.sin((i / textMeshCount) * Math.PI * 2) * textCircleRadius
+            textMesh.position.x = 0
+            textMesh.position.z = Math.cos((i / textMeshCount) * Math.PI * 2) * textCircleRadius
+            textMesh.rotation.x = (i / textMeshCount) * Math.PI * -2
+            textMeshesGroup.add(textMesh)
+        }
+
+        textMeshesGroup.position.y = 0.75
+        scene.add(textMeshesGroup)
     })
-)
-floor.receiveShadow = true
-floor.rotation.x = - Math.PI * 0.5
-scene.add(floor)
-
 /**
  * Lights
  */
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.8)
-scene.add(ambientLight)
+// scene.add(ambientLight)
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6)
-directionalLight.castShadow = true
-directionalLight.shadow.mapSize.set(1024, 1024)
-directionalLight.shadow.camera.far = 15
-directionalLight.shadow.camera.left = - 7
-directionalLight.shadow.camera.top = 7
-directionalLight.shadow.camera.right = 7
-directionalLight.shadow.camera.bottom = - 7
-directionalLight.position.set(5, 5, 5)
+const directionalLight = new THREE.DirectionalLight(0xffffff, 5)
+directionalLight.position.set(0, 0, .5)
 scene.add(directionalLight)
 
 /**
@@ -139,18 +90,35 @@ window.addEventListener('resize', () =>
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 })
 
+// rotate textMeshesGroup up on mouse move up 
+const onMouseMove = (event) => {
+    const mousePosition = {
+        // x: event.clientX / sizes.width - 0.5,
+        y: event.clientY / sizes.height - 0.5
+    }
+    textMeshesGroup.rotation.x = mousePosition.y * 2
+    // textMeshesGroup.rotation.y = mousePosition.x * 0.5
+}
+window.addEventListener('mousemove', onMouseMove)
+
 /**
  * Camera
  */
 // Base camera
-const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.set(2, 2, 2)
+// const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 2.15)
+// camera.position.set(0, 1, 2.4)
+// scene.add(camera)
+
+// set ortographic camera in front of the text
+const camera = new THREE.OrthographicCamera(- 2.2, 2.2, 2.2, - 2.2, 0, 6) 
+camera.position.set(0, 1, 5)
 scene.add(camera)
 
 // Controls
 const controls = new OrbitControls(camera, canvas)
 controls.target.set(0, 0.75, 0)
 controls.enableDamping = true
+controls.enabled = false
 
 /**
  * Renderer
@@ -160,8 +128,6 @@ const renderer = new THREE.WebGLRenderer({
     // alpha: true,
     antialias: true
 })
-renderer.shadowMap.enabled = true
-renderer.shadowMap.type = THREE.PCFSoftShadowMap
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
@@ -177,11 +143,11 @@ const tick = () =>
     const deltaTime = elapsedTime - previousTime
     previousTime = elapsedTime
 
-    // Update mixer
-    if (mixer) mixer.update(deltaTime)
-
     // Update controls
     controls.update()
+
+    // Rotate textMeshesGroup
+    textMeshesGroup.rotation.x = elapsedTime * -0.3
 
     // Render
     renderer.render(scene, camera)
