@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 
 /**
  * Base
@@ -55,14 +56,17 @@ scene.background = environmentMap
 
 debugObject.envMapIntensity = 5
 gui.add(debugObject, 'envMapIntensity').min(0).max(10).step(0.001).onChange(updateAllMaterials)
+const dracoLoader = new DRACOLoader()
+dracoLoader.setDecoderPath('/draco/')
 
 const gltfLoader = new GLTFLoader()
+gltfLoader.setDRACOLoader(dracoLoader)
 gltfLoader.load(
-    '/models/FlightHelmet/glTF/FlightHelmet.gltf',
+    '/models/Burger/glTF/burger.gltf',
     (gltf) =>
     {
         gltf.scene.position.set(0, -1, 0)
-        gltf.scene.scale.set(5, 5, 5)
+        gltf.scene.scale.set(.25, .25, .25)
         gltf.scene.castShadow = true
         scene.add(gltf.scene)
 
@@ -101,6 +105,7 @@ directionalLight.shadow.mapSize.width = 1024
 directionalLight.shadow.mapSize.height = 1024
 directionalLight.shadow.camera.far = 15
 directionalLight.shadow.camera.top = 2.5
+directionalLight.shadow.normalBias = 0.05
 scene.add(directionalLight)
 
 gui.add(directionalLight, 'intensity').min(0).max(10).step(0.001)
