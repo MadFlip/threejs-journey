@@ -70,14 +70,8 @@ gltfLoader.load(
         
         updateAllMaterials()
     }
-}
-const textMeshesGroup =  new THREE.Group()
+)
 
-fontLoader.load(
-    '/fonts/titillium_web_semi_bold.json',
-    (font) => {
-        const textGeometry = new TextGeometry('BLACK FRIDAY', textOptions(font))
-        textGeometry.center()
 
 /**
  * Floor
@@ -138,35 +132,18 @@ window.addEventListener('resize', () =>
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 })
 
-// rotate textMeshesGroup up on mouse move up 
-const onMouseMove = (event) => {
-    const mousePosition = {
-        // x: event.clientX / sizes.width - 0.5,
-        y: event.clientY / sizes.height - 0.5
-    }
-    textMeshesGroup.rotation.x = mousePosition.y * 2
-    // textMeshesGroup.rotation.y = mousePosition.x * 0.5
-}
-window.addEventListener('mousemove', onMouseMove)
-
 /**
  * Camera
  */
 // Base camera
-// const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 2.15)
-// camera.position.set(0, 1, 2.4)
-// scene.add(camera)
-
-// set ortographic camera in front of the text
-const camera = new THREE.OrthographicCamera(- 2.2, 2.2, 2.2, - 2.2, 0, 6) 
-camera.position.set(0, 1, 5)
+const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
+camera.position.set(2, 2, 2)
 scene.add(camera)
 
 // Controls
 const controls = new OrbitControls(camera, canvas)
 controls.target.set(0, 0.75, 0)
 controls.enableDamping = true
-controls.enabled = false
 
 /**
  * Renderer
@@ -175,6 +152,8 @@ const renderer = new THREE.WebGLRenderer({
     canvas: canvas,
     antialias: true,
 })
+renderer.shadowMap.enabled = true
+renderer.shadowMap.type = THREE.PCFSoftShadowMap
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 renderer.outputEncoding = THREE.sRGBEncoding
@@ -211,9 +190,6 @@ const tick = () =>
 
     // Update controls
     controls.update()
-
-    // Rotate textMeshesGroup
-    textMeshesGroup.rotation.x = elapsedTime * -0.3
 
     // Render
     renderer.render(scene, camera)
