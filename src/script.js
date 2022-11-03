@@ -2,15 +2,14 @@ import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 /**
  * Base
  */
 // Debug
 const gui = new dat.GUI()
-gui.hide()
+const debugObject = {}
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
@@ -18,54 +17,97 @@ const canvas = document.querySelector('canvas.webgl')
 // Scene
 const scene = new THREE.Scene()
 scene.background = new THREE.Color(0x000000)
-// add a fog so the text behind is not visible
-scene.fog = new THREE.Fog(0x000000, 0.0001, 6)
+// scene.fog = new THREE.Fog(0x265714, 0.5, 10)
 
+// Update all materials
 
-// Text geometry
-const textMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff })
-const fontLoader = new FontLoader()
-const textOptions = (font) => {
-    return {
-        font: font,
-        size: .45,
-        height: 0.02,
-        curveSegments: 16,
-        bevelEnabled: false,
-    }
-}
-const textMeshesGroup =  new THREE.Group()
-
-fontLoader.load(
-    '/fonts/titillium_web_semi_bold.json',
-    (font) => {
-        const textGeometry = new TextGeometry('BLACK FRIDAY', textOptions(font))
-        textGeometry.center()
-
-        // generate 8 text meshes and position them making a cylinder shape
-        const textMeshCount = 8
-        const textCircleRadius = 0.7
-        for (let i = 0; i < textMeshCount; i++) {
-            const textMesh = new THREE.Mesh(textGeometry, textMaterial)
-            textMesh.position.y = Math.sin((i / textMeshCount) * Math.PI * 2) * textCircleRadius
-            textMesh.position.x = 0
-            textMesh.position.z = Math.cos((i / textMeshCount) * Math.PI * 2) * textCircleRadius
-            textMesh.rotation.x = (i / textMeshCount) * Math.PI * -2
-            textMeshesGroup.add(textMesh)
+const updateAllMaterials = () =>
+{
+    scene.traverse((child) => {
+        if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial)
+        {
+            child.material.envMap = environmentMap
+            child.material.envMapIntensity = debugObject.envMapIntensity
+            child.material.needsUpdate = true
+            child.castShadow = true
+            child.receiveShadow = true
         }
-
-        textMeshesGroup.position.y = 0.75
-        scene.add(textMeshesGroup)
     })
+}
+
+
+/** 
+ * Models
+ */
+
+const environmentMap = new THREE.CubeTextureLoader()
+    .setPath('/textures/environmentMaps/0/')
+    .load([
+        'px.jpg',
+        'nx.jpg',
+        'py.jpg',
+        'ny.jpg',
+        'pz.jpg',
+        'nz.jpg'
+    ])
+environmentMap.encoding = THREE.sRGBEncoding
+scene.background = environmentMap
+
+debugObject.envMapIntensity = 5
+gui.add(debugObject, 'envMapIntensity').min(0).max(10).step(0.001).onChange(updateAllMaterials)
+
+const gltfLoader = new GLTFLoader()
+gltfLoader.load(
+    '/models/FlightHelmet/glTF/FlightHelmet.gltf',
+    (gltf) =>
+    {
+        gltf.scene.position.set(0, -1, 0)
+        gltf.scene.scale.set(5, 5, 5)
+        gltf.scene.castShadow = true
+        scene.add(gltf.scene)
+
+        gui.add(gltf.scene.rotation, 'y').min(-Math.PI).max(Math.PI).step(0.001).name('rotation')
+        
+        updateAllMaterials()
+    }
+)
+
+
+/**
+ * Floor
+ */
+// const floor = new THREE.Mesh(
+//     new THREE.PlaneGeometry(10, 10),
+//     new THREE.MeshStandardMaterial({
+//         color: '#747467',
+//         metalness: .2,
+//         roughness: .6
+//     })
+// )
+// floor.receiveShadow = true
+// floor.rotation.x = - Math.PI * 0.5
+// scene.add(floor)
+
 /**
  * Lights
  */
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.8)
+// const ambientLight = new THREE.AmbientLight(0xffffff, 0.8)
 // scene.add(ambientLight)
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 5)
-directionalLight.position.set(0, 0, .5)
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1)
+directionalLight.position.set(0.25, 3, -2.25)
+directionalLight.castShadow = true
+directionalLight.shadow.mapSize.width = 1024
+directionalLight.shadow.mapSize.height = 1024
+directionalLight.shadow.camera.far = 15
+directionalLight.shadow.camera.top = 2.5
 scene.add(directionalLight)
+
+gui.add(directionalLight, 'intensity').min(0).max(10).step(0.001)
+gui.add(directionalLight.position, 'x').min(-15).max(15).step(0.001)
+gui.add(directionalLight.position, 'y').min(-15).max(15).step(0.001)
+gui.add(directionalLight.position, 'z').min(-15).max(15).step(0.001)
+
 
 /**
  * Sizes
@@ -90,46 +132,49 @@ window.addEventListener('resize', () =>
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 })
 
-// rotate textMeshesGroup up on mouse move up 
-const onMouseMove = (event) => {
-    const mousePosition = {
-        // x: event.clientX / sizes.width - 0.5,
-        y: event.clientY / sizes.height - 0.5
-    }
-    textMeshesGroup.rotation.x = mousePosition.y * 2
-    // textMeshesGroup.rotation.y = mousePosition.x * 0.5
-}
-window.addEventListener('mousemove', onMouseMove)
-
 /**
  * Camera
  */
 // Base camera
-// const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 2.15)
-// camera.position.set(0, 1, 2.4)
-// scene.add(camera)
-
-// set ortographic camera in front of the text
-const camera = new THREE.OrthographicCamera(- 2.2, 2.2, 2.2, - 2.2, 0, 6) 
-camera.position.set(0, 1, 5)
+const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
+camera.position.set(2, 2, 2)
 scene.add(camera)
 
 // Controls
 const controls = new OrbitControls(camera, canvas)
 controls.target.set(0, 0.75, 0)
 controls.enableDamping = true
-controls.enabled = false
 
 /**
  * Renderer
  */
 const renderer = new THREE.WebGLRenderer({
     canvas: canvas,
-    // alpha: true,
-    antialias: true
+    antialias: true,
 })
+renderer.shadowMap.enabled = true
+renderer.shadowMap.type = THREE.PCFSoftShadowMap
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+renderer.outputEncoding = THREE.sRGBEncoding
+renderer.physicallyCorrectLights = true
+renderer.toneMapping = THREE.ACESFilmicToneMapping
+renderer.toneMappingExposure = 1
+renderer.shadowMap.enabled = true
+renderer.shadowMap.type = THREE.PCFSoftShadowMap
+
+gui.add(renderer, 'toneMapping', {
+    No: THREE.NoToneMapping,
+    Linear: THREE.LinearToneMapping,
+    Reinhard: THREE.ReinhardToneMapping,
+    Cineon: THREE.CineonToneMapping,
+    ACESFilmic: THREE.ACESFilmicToneMapping,
+}).onChange(() => {
+    renderer.toneMapping = Number(renderer.toneMapping)
+    updateAllMaterials()
+})
+
+gui.add(renderer, 'toneMappingExposure').min(0).max(10).step(0.001)
 
 /**
  * Animate
@@ -145,9 +190,6 @@ const tick = () =>
 
     // Update controls
     controls.update()
-
-    // Rotate textMeshesGroup
-    textMeshesGroup.rotation.x = elapsedTime * -0.3
 
     // Render
     renderer.render(scene, camera)
