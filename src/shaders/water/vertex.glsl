@@ -8,7 +8,11 @@ uniform float uSmallWavesFrequency;
 uniform float uSmallWavesSpeed;
 uniform float uSmallWavesIterations;
 
+uniform float uFogNear;
+uniform float uFogFar;
+
 varying float vElavation;
+varying float vFogFactor;
 
 // Classic Perlin 3D Noise 
 // by Stefan Gustavson
@@ -122,4 +126,7 @@ void main()
     gl_Position = projectionPosition;
 
     vElavation = elevation;
+
+    // add fog
+    vFogFactor = smoothstep(uFogFar, uFogNear, -viewPosition.z);
 }
