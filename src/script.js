@@ -1,41 +1,16 @@
+import * as dat from 'lil-gui'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { LoadingManager } from 'three'
-import { gsap } from 'gsap'
-/**
- * Loaders
- */
-let sceenReady = false
-const loadingBarElement = document.querySelector('.loading-bar')
-const loadingManager = new LoadingManager(
-    () => {
-        gsap.delayedCall(0.5, () => {
-            gsap.to(overlayMaterial.uniforms.uAlpha, {
-                duration: 2,
-                value: 0
-            })
-            loadingBarElement.classList.add('ended')
-        })
-
-        setTimeout(() => {
-            sceenReady = true
-        }, 1500)
-    },
-    (itemURL, itemsLoaded, itemsTotal) => {
-        const progressRatio = itemsLoaded / itemsTotal
-        loadingBarElement.style.setProperty('--progress-ratio', progressRatio)
-    },
-)
-
-const gltfLoader = new GLTFLoader(loadingManager)
-const cubeTextureLoader = new THREE.CubeTextureLoader(loadingManager)
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 
 /**
  * Base
  */
 // Debug
-const debugObject = {}
+const gui = new dat.GUI({
+    width: 400
+})
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
@@ -44,112 +19,60 @@ const canvas = document.querySelector('canvas.webgl')
 const scene = new THREE.Scene()
 
 /**
- *  Overlay
- * */
+ * Loaders
+ */
+// Texture loader
+const textureLoader = new THREE.TextureLoader()
 
-const overlayGeometry = new THREE.PlaneGeometry(2, 2, 1, 1)
-const overlayMaterial = new THREE.ShaderMaterial({
-    uniforms: {
-        uAlpha: { value: 1 }
-    },
-    vertexShader: `
-        void main() {
-            gl_Position = vec4(position, 1.0);
-        }`,
-    fragmentShader: `
-        uniform float uAlpha;
+// Draco loader
+const dracoLoader = new DRACOLoader()
+dracoLoader.setDecoderPath('draco/')
 
-        void main() {
-            gl_FragColor = vec4(0.0, 0.0, 0.0, uAlpha);
-        }`,
-    transparent: true
-})
-const overlay = new THREE.Mesh(overlayGeometry, overlayMaterial)
-scene.add(overlay)
+// GLTF loader
+const gltfLoader = new GLTFLoader()
+gltfLoader.setDRACOLoader(dracoLoader)
 
 /**
- * Update all materials
- */
-const updateAllMaterials = () =>
-{
-    scene.traverse((child) =>
-    {
-        if(child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial)
-        {
-            // child.material.envMap = environmentMap
-            child.material.envMapIntensity = debugObject.envMapIntensity
-            child.material.needsUpdate = true
-            child.castShadow = true
-            child.receiveShadow = true
-        }
-    })
-}
+ * Textures
+ *
+ **/
+const encoding = THREE.sRGBEncoding
+
+// Baked texture
+const bakedTexture = textureLoader.load('my-baked-portal.jpg')
+bakedTexture.flipY = false
+bakedTexture.encoding = encoding
+
+// Baked material
+const bakedMaterial = new THREE.MeshBasicMaterial({ map: bakedTexture })
+
+// Pole light material
+const poleLightMaterial = new THREE.MeshBasicMaterial({ color: '#ffffe5' })
+
+// Portal light material
+const portalLightMaterial = new THREE.MeshBasicMaterial({ color: '#ffffff' })
 
 /**
- * Environment map
+ * Model
  */
-const environmentMap = cubeTextureLoader.load([
-    '/textures/environmentMaps/0/px.jpg',
-    '/textures/environmentMaps/0/nx.jpg',
-    '/textures/environmentMaps/0/py.jpg',
-    '/textures/environmentMaps/0/ny.jpg',
-    '/textures/environmentMaps/0/pz.jpg',
-    '/textures/environmentMaps/0/nz.jpg'
-])
 
-environmentMap.encoding = THREE.sRGBEncoding
-
-scene.background = environmentMap
-scene.environment = environmentMap
-
-debugObject.envMapIntensity = 2.5
-
-/**
- * Models
- */
 gltfLoader.load(
-    '/models/FlightHelmet/glTF/FlightHelmet.gltf',
+    'my-portal-merged.glb',
     (gltf) =>
     {
-        gltf.scene.scale.set(10, 10, 10)
-        gltf.scene.position.set(0, - 4, 0)
-        gltf.scene.rotation.y = Math.PI * 0.5
+        const bakedMesh = gltf.scene.children.find(child => child.name === 'merged')
+        const portalLightMesh = gltf.scene.children.find(child => child.name === 'portalLight')
+        const poleLightAMesh = gltf.scene.children.find(child => child.name === 'poleLightA')
+        const poleLightBMesh = gltf.scene.children.find(child => child.name === 'poleLightB')
+        bakedMesh.material = bakedMaterial
+        poleLightAMesh.material = poleLightMaterial
+        poleLightBMesh.material = poleLightMaterial
+        portalLightMesh.material = portalLightMaterial
+        // rotate scene
+        gltf.scene.rotation.y = Math.PI
         scene.add(gltf.scene)
-
-        updateAllMaterials()
     }
 )
-
-/**
- * Points of interest
- * */
-const raycaster = new THREE.Raycaster()
-const points = [
-    {
-        position: new THREE.Vector3(1.65, 0.3, 0.12),
-        element: document.querySelector('.point-0')
-    },
-    {
-        position: new THREE.Vector3(-0.25, 1.3, -1.5),
-        element: document.querySelector('.point-1')
-    },
-    {
-        position: new THREE.Vector3(1.55, 1.85, -0.5),
-        element: document.querySelector('.point-2')
-    },
-]
-
-
-/**
- * Lights
- */
-const directionalLight = new THREE.DirectionalLight('#ffffff', 3)
-directionalLight.castShadow = true
-directionalLight.shadow.camera.far = 15
-directionalLight.shadow.mapSize.set(1024, 1024)
-directionalLight.shadow.normalBias = 0.05
-directionalLight.position.set(0.25, 3, - 2.25)
-scene.add(directionalLight)
 
 /**
  * Sizes
@@ -178,14 +101,21 @@ window.addEventListener('resize', () =>
  * Camera
  */
 // Base camera
-const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.set(4, 1, - 4)
+const camera = new THREE.PerspectiveCamera(45, sizes.width / sizes.height, 0.1, 100)
+camera.position.x = 4
+camera.position.y = 2
+camera.position.z = 4
 scene.add(camera)
 
 // Controls
 const controls = new OrbitControls(camera, canvas)
 controls.enableDamping = true
-
+// limit max zoom
+controls.maxDistance = 10
+// limit min zoom
+controls.minDistance = 4
+// limit rotation above horizon
+controls.maxPolarAngle = Math.PI / 2.1
 /**
  * Renderer
  */
@@ -193,49 +123,21 @@ const renderer = new THREE.WebGLRenderer({
     canvas: canvas,
     antialias: true
 })
-renderer.physicallyCorrectLights = true
-renderer.outputEncoding = THREE.sRGBEncoding
-renderer.toneMapping = THREE.ReinhardToneMapping
-renderer.toneMappingExposure = 3
-renderer.shadowMap.enabled = true
-renderer.shadowMap.type = THREE.PCFSoftShadowMap
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+renderer.outputEncoding = encoding
 
 /**
  * Animate
  */
+const clock = new THREE.Clock()
+
 const tick = () =>
 {
+    const elapsedTime = clock.getElapsedTime()
+
     // Update controls
     controls.update()
-
-    // Update points of interest
-    if (sceenReady) {
-        for(const point of points) {
-            const screenPosition = point.position.clone()
-            screenPosition.project(camera)
-
-            // Raycaster
-            raycaster.setFromCamera(screenPosition, camera)
-            const intersects = raycaster.intersectObjects(scene.children)
-            if(!intersects.length) {
-                point.element.classList.add('visible')
-            } else {
-                const intersectionDistance = intersects[0].distance
-                const pointeDistance = point.position.distanceTo(camera.position)
-                if(intersectionDistance < pointeDistance) {
-                    point.element.classList.remove('visible')
-                } else {
-                    point.element.classList.add('visible')
-                }
-            }
-
-            const translateX = screenPosition.x * sizes.width * 0.5
-            const translateY = - screenPosition.y * sizes.height * 0.5
-            point.element.style.transform = `translate(${translateX}px, ${translateY}px)`
-        }
-    }
 
     // Render
     renderer.render(scene, camera)
